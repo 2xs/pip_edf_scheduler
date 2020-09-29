@@ -1,0 +1,1 @@
+Ce dossier contient les modèles qui ne sont que de pures constructions théoriques et qui n'ont pas vocation à apparaitre dans le binaire final. On retrouvera dans ce dossier les monades, qui représentent l'état interne de la machine.
