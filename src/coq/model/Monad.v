@@ -28,7 +28,12 @@
 (* This Coq module defines a simple state monad with failure, as an
    example of use of digger to extract some monadic code into C code *)
 
-Require Import AbstractTypes.
+From Model Require Import AbstractTypes.
+
+Require Import FunctionalExtensionality.
+
+Declare Scope monad_scope.
+Open Scope monad_scope.
 
 (** the monad *)
 
@@ -43,8 +48,6 @@ fun _ s => (a, s).
 Definition bind {A B : Type} (m : RT A) (f : A -> RT B) : RT B :=
 fun env s => let (a, s') := m env s in f a env s'.
 
-Declare Scope monad_scope.
-
 (* notations for the sequence *)
 Notation "'do' x <- m ; e" :=
   (bind m (fun x => e))
@@ -56,7 +59,8 @@ Notation " m ;; e" :=
 
 (** monad laws *)
 
-(**Lemma ret_bind (A B : Type) (a : A) (f : A -> RT B) : do x <- ret a ; f x = f a.
+
+Lemma ret_bind (A B : Type) (a : A) (f : A -> RT B) : do x <- ret a ; f x = f a.
 Proof.
 extensionality env.
 extensionality s.
@@ -78,4 +82,4 @@ unfold bind.
 extensionality env.
 extensionality s.
 destruct (m env s); reflexivity.
-Qed.*)
+Qed.

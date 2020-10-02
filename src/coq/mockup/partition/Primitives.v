@@ -25,36 +25,20 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-(* type for an entry *)
-Record Entry :=
-  mk_Entry
-    {
-      id : nat ;
-      cnt : nat ;
-      del : nat
-    }.
-
-(* type for a job  *)
-Record Job  :=
-  mk_Job
-    {
-      jobid : nat ;
-      arrival : nat ;
-      duration : nat ;
-      budget : nat ;
-      deadline : nat
-    }.
-
-(* type for the state *)
-Record State :=
-  mk_State
-    {
-      now : nat ;
-      active : list Entry (* TODO replace list by CList *)
-    }.
+From Model Require Import AbstractTypes.
 
 
-(** Oracle for the scheduling plan *)
-Definition Env : Type := nat -> list Job. (* TODO replace list by CList *)
+Definition jobs_arriving(N:nat) : RT (list nat):=
+  fun env s =>
+    let f :=  filter (fun j =>   j <? N) (map jobid (env s.(now))) in
+     (f, s).
 
-
+(* primitive that checks whether the current job is terminated *)
+(* Primitive *)
+Definition job_terminating : RT bool :=
+fun _ s => ((match head s.(active) with
+         None => false
+       | Some e =>
+          let j := Jobs (e.(id)) in
+          Nat.leb  e.(cnt)  (j.(budget) - j.(duration))
+         end), s).

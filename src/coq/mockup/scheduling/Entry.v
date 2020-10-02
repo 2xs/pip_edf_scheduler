@@ -25,36 +25,11 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-(* type for an entry *)
-Record Entry :=
-  mk_Entry
-    {
-      id : nat ;
-      cnt : nat ;
-      del : nat
-    }.
-
-(* type for a job  *)
-Record Job  :=
-  mk_Job
-    {
-      jobid : nat ;
-      arrival : nat ;
-      duration : nat ;
-      budget : nat ;
-      deadline : nat
-    }.
-
-(* type for the state *)
-Record State :=
-  mk_State
-    {
-      now : nat ;
-      active : list Entry (* TODO replace list by CList *)
-    }.
+From Model Require Import AbstractTypes.
+From Model Require Import Monad.
 
 
-(** Oracle for the scheduling plan *)
-Definition Env : Type := nat -> list Job. (* TODO replace list by CList *)
 
-
+(* TODO constructor accessors *)
+Definition make_entry (id : nat) (cnt : nat) (del : nat) : RT Entry :=
+  ret (mk_Entry id cnt del).

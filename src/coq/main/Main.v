@@ -29,7 +29,6 @@
    describe sequential computations. *)
 
 Require Import Ascii String Model.Monad Model.Internals.
-Open Scope monad_scope.
 
 Definition HelloWorld := append "Hello World !"%string (String (ascii_of_N 10) EmptyString).
 

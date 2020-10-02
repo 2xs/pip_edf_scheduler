@@ -1,4 +1,4 @@
--R src/coq/mockup/partition PartitionMockup
--R src/coq/mockup/scheduling SchedulerMockup
--R src/coq/model Model
--R src/coq/scheduler Scheduler
+-Q src/coq/mockup/partition PartitionMockup
+-Q src/coq/mockup/scheduling SchedulerMockup
+-Q src/coq/model Model
+-Q src/coq/scheduler Scheduler

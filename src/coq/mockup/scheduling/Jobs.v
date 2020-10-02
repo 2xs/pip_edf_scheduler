@@ -1,19 +1,62 @@
-(* type for a job  *)
-Record Job  :=
-  mk_Job
-    {
-      jobid : nat ;
-      arrival : nat ;
-      duration : nat ;
-      budget : nat ;
-      deadline : nat
-    }.
+(* This software is governed by the CeCILL license under French law and
+ * abiding by the rules of distribution of free software.  You can  use,
+ * modify and/ or redistribute the software under the terms of the CeCILL
+ * license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info".
 
-Definition def_Job : Job := mk_Job 0 0 0 0 0.
+ * As a counterpart to the access to the source code and  rights to copy,
+ * modify and redistribute granted by the license, users are provided only
+ * with a limited warranty  and the software's author,  the holder of the
+ * economic rights,  and the successive licensors  have only  limited
+ * liability.
 
+ * In this respect, the user's attention is drawn to the risks associated
+ * with loading,  using,  modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software,
+ * that may mean  that it is complicated to manipulate,  and  that  also
+ * therefore means  that it is reserved for developers  and  experienced
+ * professionals having in-depth computer knowledge. Users are therefore
+ * encouraged to load and test the software's suitability as regards their
+ * requirements in conditions enabling the security of their systems and/or
+ * data to be ensured and,  more generally, to use and operate it in the
+ * same conditions as regards security.
+
+ * The fact that you are presently reading this means that you have had
+ * knowledge of the CeCILL license and that you accept its terms.
+ *)
+
+(* /!\ Proof related content on Jobs are located in proof/JobsAxioms.v *)
+
+From Model Require Import AbstractTypes.
+From Model Require Import Monad.
+
+
+(** TODO define monadic constructors *)
+Definition get_budget (job : Job) : RT nat :=
+  ret (budget job).
+
+Definition get_arrival (job : Job) : RT nat :=
+  ret (arrival job).
+
+Definition get_deadline (job : Job) : RT nat :=
+  ret (deadline job).
+
+(** TODO define comparison functions *)
+
+Definition default_Job : Job := mk_Job 0 0 0 0 0.
+
+(* primitive *)
+Parameter get_job_from_job_id : nat -> RT Job.
+
+(*
 Module Type JobsMod.
 
-  Parameter Jobs : nat -> Job.
+  (* job_id -> job *)
+  (*Parameter Jobs : nat -> Job.*)
+
+  (* oracle from scheduling plan *)
+  Parameter jobs_arriving_at :
+    forall (t:nat), list nat.
 
   Axiom job_duration_gt_0 : forall n, duration (Jobs n) > 0.
 
@@ -26,8 +69,6 @@ Module Type JobsMod.
 
   Axiom jobs_id_index : forall i,   jobid (Jobs i) = i.
 
-  Parameter jobs_arriving_at :
-    forall (t:nat), list nat.
 
   (* In should be defined for C lists ? TODO *)
 (*  Axiom jobs_arriving_at_prop : forall  t i,
@@ -41,4 +82,4 @@ Module Type JobsMod.
       (t = t' /\ i = i').
 *)
 
-End JobsMod.
+End JobsMod.*)
