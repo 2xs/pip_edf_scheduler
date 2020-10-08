@@ -27,10 +27,15 @@
 
 From Model Require Import Monad.
 
+Parameter default_nat : nat.
+
 Definition sub (n1 : nat) (n2 : nat) : RT nat :=
   ret (n1-n2).
 
 Definition succ (n : nat) : RT nat :=
   ret (S(n)).
+
+Definition eqb (n1 n2 : nat) : RT bool :=
+  ret (Nat.eqb n1 n2).
 
 (* TODO : refléter les entiers C plutot que les entiers naturels *)

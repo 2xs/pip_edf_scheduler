@@ -56,7 +56,6 @@ Notation " m ;; e" :=
   (bind m (fun _ => e))
   (at level 60, e at level 60) : monad_scope.
 
-
 (** monad laws *)
 
 

@@ -28,8 +28,19 @@
 From Model Require Import AbstractTypes.
 From Model Require Import Monad.
 
-
+Parameter default_Entry : Entry.
+Parameter is_default_entry : Entry -> RT bool.
 
 (* TODO constructor accessors *)
+
+Definition get_entry_counter (entry : Entry) : RT nat :=
+  ret (cnt entry).
+
+Definition get_entry_id (entry : Entry) : RT nat :=
+  ret (id entry).
+
+Definition get_entry_delete (entry : Entry) : RT nat :=
+  ret (del entry).
+
 Definition make_entry (id : nat) (cnt : nat) (del : nat) : RT Entry :=
   ret (mk_Entry id cnt del).

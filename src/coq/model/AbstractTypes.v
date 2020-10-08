@@ -45,16 +45,22 @@ Record Job  :=
       deadline : nat
     }.
 
+
+Definition JobList := list Job.
+Definition EntryList := list Entry.
+Definition CNatList := list nat.
+
+
 (* type for the state *)
 Record State :=
   mk_State
     {
       now : nat ;
-      active : list Entry (* TODO replace list by CList *)
+      active : EntryList
     }.
 
 
 (** Oracle for the scheduling plan *)
-Definition Env : Type := nat -> list Job. (* TODO replace list by CList *)
+Definition Env : Type := nat -> JobList.
 
 

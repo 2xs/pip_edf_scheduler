@@ -26,6 +26,27 @@
  *)
 
 From Model Require Import AbstractTypes.
-
+From Model Require Import Monad.
 
 (* TODO définir des accesseurs pour la monade *)
+Definition get_time_counter : RT nat :=
+  fun _ s => ((now s), s).
+
+Definition set_time_counter (time_counter  : nat) : RT unit :=
+  fun _ s => (tt,
+    {|
+      now    := time_counter ;
+      active := (active s) ;
+    |}
+  ).
+
+Definition get_active_entries : RT EntryList :=
+  fun _ s => ((active s), s).
+
+Definition set_active_entries (active_list : EntryList) : RT unit :=
+  fun _ s => (tt,
+    {|
+      now    := (now s) ;
+      active := active_list ;
+    |}
+  ).

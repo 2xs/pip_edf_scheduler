@@ -25,61 +25,103 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-Require Import Jobs.
-Require Import AbstractTypes.
+From SchedulerMockup Require Import Jobs.
+From SchedulerMockup Require Import Entry.
+From SchedulerMockup Require Import CNat.
+From Model Require Import AbstractTypes.
+From Model Require Import AbstractFunctions.
+From Model Require Import Monad.
 
 (** Doit construire un type Liste d'entry 
     et un type liste de Jobs *)
 
-(** Structure contenue dans la liste C *)
-Record element_type := {
-  entry : Entry;
-  job : Job;
-}.
-
-Parameter null_element : element_type.
-
-Inductive list (A : Type) : Type :=
-  | nil : list A
-  | cons : A -> list A -> list A
-.
-
-(** Redéfini en C *)
-Inductive pip_list (A : element_type) : Type := 
-  | nil : pip_list%A)
-  | cons  : A -> pip_list A -> pip_list A.
-
-(** Redéfini en C *)
-Definition create_list : LLI pip_list :=
+Definition create_JobList : RT JobList :=
   ret nil.
 
-(** Redéfini en C *)
-Definition add_head (head : element_type) (list : pip_list) : LLI pip_list :=
-  ret cons head list.
+Definition create_EntryList : RT EntryList :=
+  ret nil.
 
-(** Redéfini en C *)
-Definition get_head (list : pip_list) : LLI element_type :=
+Definition create_CNatList : RT CNatList :=
+  ret nil.
+
+Definition add_JobList_head (head : Job) (list : JobList) : RT JobList :=
+  ret (cons head list).
+
+Definition add_EntryList_head (head : Entry) (list : EntryList) : RT EntryList :=
+  ret (cons head list).
+
+Definition add_CNatList_head (head : nat) (list : CNatList) : RT CNatList :=
+  ret (cons head list).
+
+Definition get_JobList_head (list : JobList) : RT Job :=
   match list with
-  | nil _ => ret null_element
-  | cons elem _ _ => ret elem
-  end
-.
+  | nil => ret default_Job
+  | cons head _ => ret head
+  end.
 
-(** Redéfini en C *)
-Definition get_tail (list : pip_list) : LLI pip_list :=
+Definition get_EntryList_head (list : EntryList) : RT Entry :=
   match list with
-  | nil _ => ret nil
-  | cons _ tail _ => ret tail
-  end
-.
+  | nil => ret default_Entry
+  | cons head _ => ret head
+  end.
 
-Definition remove_head (list : pip_list) : LLI pip_list :=
-  get_tail list.
+Definition get_CNatList_head (list : CNatList) : RT nat :=
+  match list with
+  | nil => ret default_nat
+  | cons head _ => ret head
+  end.
 
-(** Fonction compilée en C *)
-Definition example : LLI unit := 
-  perform new_list := create_list in
-  perform head := Build_element_type true in
-  perform other_list := add_head head new_list in
-  perform last_list := remove_head other_list in
-  ret tt;;
+Definition get_JobList_tail (list : JobList) : RT JobList :=
+  match list with
+  | nil => ret nil
+  | cons _ tail => ret tail
+  end.
+
+Definition get_EntryList_tail (list : EntryList) : RT EntryList :=
+  match list with
+  | nil => ret nil
+  | cons _ tail => ret tail
+  end.
+
+Definition get_CNatList_tail (list : CNatList) : RT CNatList :=
+  match list with
+  | nil => ret nil
+  | cons _ tail => ret tail
+  end.
+
+Definition remove_JobList_head (list : JobList) : RT JobList :=
+  get_JobList_tail list.
+
+Definition remove_EntryList_head (list : EntryList) : RT EntryList :=
+  get_EntryList_tail list.
+
+Definition remove_CNatList_head (list : CNatList) : RT CNatList :=
+  get_CNatList_tail list.
+
+(* inserts an Entry in an EntryList in a sorted way *)
+Definition insert_Entry (entry : Entry)
+                        (list  : EntryList)
+                        (comp_func : Entry -> Entry -> bool)
+                        : RT EntryList :=
+  ret (insert_Entry_aux entry list comp_func).
+
+(* inserts a Job in a JobList in a sorted way *)
+Definition insert_Job (job  : Job)
+                      (list : JobList)
+                      (comp_func : Job -> Job -> bool)
+                      : RT JobList :=
+  ret (insert_Job_aux job list comp_func).
+
+(* inserts several entries in a EntryList in a sorted way *)
+Definition insert_Entries (entries : EntryList)
+                          (list  : EntryList)
+                          (comp_func : Entry -> Entry -> bool)
+                          : RT EntryList :=
+  ret (insert_Entries_aux entries list comp_func).
+
+(* inserts several jobs in a JobList in a sorted way *)
+Definition insert_Jobs (jobs_to_insert : JobList)
+                       (list : JobList)
+                       (comp_func : Job -> Job -> bool)
+                       : RT JobList :=
+  ret (insert_Jobs_aux jobs_to_insert list comp_func).

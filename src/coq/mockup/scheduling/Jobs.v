@@ -30,6 +30,8 @@
 From Model Require Import AbstractTypes.
 From Model Require Import Monad.
 
+Parameter default_Job : Job.
+Parameter is_default_job : Job -> RT bool.
 
 (** TODO define monadic constructors *)
 Definition get_budget (job : Job) : RT nat :=
@@ -43,10 +45,14 @@ Definition get_deadline (job : Job) : RT nat :=
 
 (** TODO define comparison functions *)
 
-Definition default_Job : Job := mk_Job 0 0 0 0 0.
+Definition lt_deadline (job1 job2 : Job) : RT bool :=
+  ret (Nat.ltb (deadline job1) (deadline job2)).
 
-(* primitive *)
-Parameter get_job_from_job_id : nat -> RT Job.
+Definition lt_arrival (job1 job2 : Job) : RT bool :=
+  ret (Nat.ltb (arrival job1) (arrival job2)).
+
+Definition lt_budget (job1 job2 : Job) : RT bool :=
+  ret (Nat.ltb (budget job1) (budget job2)).
 
 (*
 Module Type JobsMod.

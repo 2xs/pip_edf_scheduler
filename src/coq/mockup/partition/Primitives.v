@@ -26,11 +26,15 @@
  *)
 
 From Model Require Import AbstractTypes.
+From Model Require Import Monad.
 
+Require Import List.
 
-Definition jobs_arriving(N:nat) : RT (list nat):=
+About jobid.
+
+Definition jobs_arriving (N : nat) : RT CNatList :=
   fun env s =>
-    let f :=  filter (fun j =>   j <? N) (map jobid (env s.(now))) in
+    let f :=  List.filter (fun j =>  Nat.ltb j N) (map jobid (env s.(now))) in
      (f, s).
 
 (* primitive that checks whether the current job is terminated *)
