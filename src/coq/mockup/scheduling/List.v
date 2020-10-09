@@ -32,6 +32,8 @@ From Model Require Import AbstractTypes.
 From Model Require Import AbstractFunctions.
 From Model Require Import Monad.
 
+Require Import List.
+
 (** Doit construire un type Liste d'entry 
     et un type liste de Jobs *)
 
@@ -117,7 +119,10 @@ Definition insert_Entries (entries : EntryList)
                           (list  : EntryList)
                           (comp_func : Entry -> Entry -> bool)
                           : RT EntryList :=
-  ret (insert_Entries_aux entries list comp_func).
+  ret (insert_Entries_aux
+        entries list
+        comp_func
+      ).
 
 (* inserts several jobs in a JobList in a sorted way *)
 Definition insert_Jobs (jobs_to_insert : JobList)
@@ -125,3 +130,9 @@ Definition insert_Jobs (jobs_to_insert : JobList)
                        (comp_func : Job -> Job -> bool)
                        : RT JobList :=
   ret (insert_Jobs_aux jobs_to_insert list comp_func).
+
+Definition C_map_Entry_Entry (func : Entry -> Entry) (entry_list : EntryList) : RT EntryList :=
+  ret (map func entry_list).
+
+Definition C_map_CNat_Entry (func : nat -> Entry) (nat_list : CNatList) : RT EntryList :=
+  ret (map func nat_list).

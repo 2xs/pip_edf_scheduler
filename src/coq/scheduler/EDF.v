@@ -30,8 +30,10 @@ From Model Require Import AbstractTypes.
 From SchedulerMockup Require Import Jobs.
 From SchedulerMockup Require Import Entry.
 From SchedulerMockup Require Import CNat.
+From SchedulerMockup Require Import CBool.
 From SchedulerMockup Require Import List.
 From SchedulerMockup Require Import State.
+From PartitionMockup Require Import Primitives.
 
 (** Computations made during the election of the next Job to schedule *)
 
@@ -84,7 +86,7 @@ Definition insert_new_active_entries (new_active_entries : EntryList) : RT unit 
   do former_active_entries <- get_active_entries ;
   (* insert_entries function destroys new_active_entries AND former_active_entries *)
   (* You should not use either of those variables afterwards *)
-  do active_entries <- insert_Entries new_active_entries former_active_entries  ;
+  do active_entries <- insert_Entries new_active_entries former_active_entries cmp_entry_deadline ;
   set_active_entries active_entries.
   (*
   fun _ s => (tt, {|
@@ -95,70 +97,101 @@ Definition insert_new_active_entries (new_active_entries : EntryList) : RT unit 
                             l s.(active)
     |}).*)
 
+Definition remove_first : RT unit :=
+(*fun _ s =>  (tt, {| now := s.(now); active := tail s.(active) |}).*)
+  do active_entries <- get_active_entries ;
+  do removed_head_active_entries <- remove_EntryList_head active_entries ;
+  set_active_entries removed_head_active_entries.
+
+Definition get_running : RT nat :=
+  do active_entries <- get_active_entries ;
+  do running_entry <- get_EntryList_head active_entries ;
+  get_entry_id running_entry.
+
 (** Updates the list of Entries to schedule (new jobs given by a primitive) *)
 Definition update_entries(N : nat) : RT ((option nat)* bool) :=
   do new_jobs <- jobs_arriving N ; (* get all jobs arriving at current time, having id < N *)
   do finished <- job_terminating;  (* does a job finish at current time ? *)
   do expired <- job_expired;       (* is the job expired ? *)
   do late <- job_late ;            (* did the job exceed its deadline ?*)
-  (if finished && (negb expired) then (* i remove its entry (NB the first one) from active list*)
+  do not_expired <- not expired;
+  do finished_and_not_expired <- and finished not_expired ;
+  (if finished_and_not_expired then (* i remove its entry (NB the first one) from active list*)
     remove_first
   else
     ret tt)
   ;;
 
-  insert_entries (* insert new entries generated from the new incoming jobs in the active list *)
+  do active_entries <- get_active_entries ;
+  do new_entries <- C_map_CNat_Entry create_entry_from_job_id new_jobs ;
+  do new_active_entries <- insert_Entries new_entries active_entries cmp_entry_deadline ;
+  (*insert_entries (* insert new entries generated from the new incoming jobs in the active list *)
     (map 
       (fun job_id => mk_Entry job_id (Jobs job_id).(budget) (S((Jobs job_id).(deadline)-(Jobs job_id).(arrival)))) 
       new_jobs
     ) ;;
-
+  *)
   do r <- get_running ; (* obtain id of the running job (possibly none) from head of active list*)
   ret (r,late).
   (*  return the job id (if any) that has beed running, and whether or not the job was late   *)
 
 (* Rewrite me, monadic + Clist *)
 Definition decrease_cnt_first : RT unit :=
-fun _ s => match s.(active) with
+  do active_entries <- get_active_entries ;
+  do current_job_entry <- get_EntryList_head active_entries ;
+  do decreased_counter_current_job_entry <- decrease_counter current_job_entry ;
+  (* This is insane in C - the following operations correspond to identity *)
+  (* ALED *)
+  do active_entries_tail <- get_EntryList_tail active_entries ;
+  do updated_active_entries <- add_EntryList_head decreased_counter_current_job_entry active_entries_tail ;
+  set_active_entries updated_active_entries.
+(* fun _ s => match s.(active) with
 | [] => (tt, s)
 | e :: es =>
   (tt, {|
     now := s.(now);
     active := mk_Entry (id e) (pred (cnt e)) (del e) :: es
   |})
-end.
+end.*)
 
 
-Definition remove_first : RT unit :=
-(*fun _ s =>  (tt, {| now := s.(now); active := tail s.(active) |}).*)
-  do active_entries <- get_active_entries ;
-  do new_active_entries <- remove_EntryList_head active_entries ;
-  set_active_entries new_active_entries.
 
 
 (* primitive that removes the first entry if it exists and has expired *)
 Definition remove_first_if_expired : RT unit :=
-fun _ s => match s.(active) with
+  do active_entries <- get_active_entries ;
+  do current_job_entry <- get_EntryList_head active_entries ;
+  do current_job_entry_counter <- get_counter current_job_entry ;
+  do current_job_entry_is_expired <- CNat.eqb current_job_entry_counter 0 ;
+  if current_job_is_expired then
+    do removed_head_active_entries <- remove_EntryList_head active_entries ;
+    set_active_entries removed_head_active_entries
+  else
+    ret tt.
+(* fun _ s => match s.(active) with
 | [] => (tt, s)
 | e :: es =>
     if ( Nat.eqb (cnt e)   0)
     then (tt, {| now := s.(now); active :=  es |})
     else (tt,s)
-end.
+end.*)
 
-Definition decrease_all_del_func(l : list Entry) :=
+(* Definition decrease_all_del_func(l : list Entry) :=
   map (fun e => {|
       id := e.(id);
       cnt := e.(cnt);
       del := pred e.(del)
-  |}) l.
+  |}) l. *)
 
 Definition decrease_all_del : RT unit :=
-  fun _ s =>
+  do active_entries_list <- get_active_entries ;
+  decreased_del_active_entries <- C_map_Entrylist decrease_del active_entries_list ;
+  set_active_entries decreased_del_active_entries.
+(*fun _ s =>
     (tt, {|
     now := s.(now);
     active := decrease_all_del_func s.(active)
-    |}).
+    |}).*)
 
 (* primitive that increases the time counter *)
 Definition inc_time_counter : RT unit :=

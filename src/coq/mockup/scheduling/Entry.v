@@ -25,6 +25,7 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
+From Model Require Import AbstractFunctions.
 From Model Require Import AbstractTypes.
 From Model Require Import Monad.
 
@@ -41,6 +42,27 @@ Definition get_entry_id (entry : Entry) : RT nat :=
 
 Definition get_entry_delete (entry : Entry) : RT nat :=
   ret (del entry).
+
+Definition decrease_del (entry : Entry) : RT Entry :=
+  ret ((fun e => {|
+      id := e.(id);
+      cnt := e.(cnt);
+      del := pred e.(del)
+  |}) entry).
+
+Definition decrease_cnt (entry : Entry) : RT Entry :=
+  ret (
+    (fun e => {|
+      id := e.(id);
+      cnt := pred e.(cnt);
+      del := e.(del)
+    |})
+    entry).
+
+Definition cmp_entry_deadline (entry1 entry2 : Entry) : bool :=
+  Nat.leb
+    (Jobs(entry1.(id))).(deadline)
+    (Jobs(entry2.(id))).(deadline).
 
 Definition make_entry (id : nat) (cnt : nat) (del : nat) : RT Entry :=
   ret (mk_Entry id cnt del).

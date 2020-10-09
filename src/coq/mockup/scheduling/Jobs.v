@@ -27,6 +27,7 @@
 
 (* /!\ Proof related content on Jobs are located in proof/JobsAxioms.v *)
 
+From Model Require Import AbstractFunctions.
 From Model Require Import AbstractTypes.
 From Model Require Import Monad.
 
@@ -54,6 +55,8 @@ Definition lt_arrival (job1 job2 : Job) : RT bool :=
 Definition lt_budget (job1 job2 : Job) : RT bool :=
   ret (Nat.ltb (budget job1) (budget job2)).
 
+Definition get_job_from_job_id (job_id : nat) : RT Job :=
+  ret (Jobs job_id).
 (*
 Module Type JobsMod.
 

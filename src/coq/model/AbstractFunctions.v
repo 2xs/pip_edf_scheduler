@@ -29,7 +29,8 @@ From Model Require Import Monad.
 From Model Require Import AbstractTypes.
 
 (* primitive *)
-Parameter get_job_from_job_id : nat -> RT Job.
+
+Parameter Jobs : nat -> Job.
 
 Fixpoint insert_Entry_aux (entry : Entry)
                           (list : EntryList)

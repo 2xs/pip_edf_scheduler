@@ -27,18 +27,8 @@
 
 From Model Require Import Monad.
 
-Parameter default_nat : nat.
+Definition not (b : bool) : RT bool :=
+  ret (negb b).
 
-Definition sub (n1 : nat) (n2 : nat) : RT nat :=
-  ret (n1-n2).
-
-Definition succ (n : nat) : RT nat :=
-  ret (S(n)).
-
-Definition pred (n : nat) : RT nat :=
-  ret (pred n).
-
-Definition eqb (n1 n2 : nat) : RT bool :=
-  ret (Nat.eqb n1 n2).
-
-(* TODO : refléter les entiers C plutot que les entiers naturels *)
+Definition and (b1 b2 : bool) : RT bool :=
+  ret (andb b1 b2).

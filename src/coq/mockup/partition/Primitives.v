@@ -25,12 +25,11 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
+From Model Require Import AbstractFunctions.
 From Model Require Import AbstractTypes.
 From Model Require Import Monad.
 
 Require Import List.
-
-About jobid.
 
 Definition jobs_arriving (N : nat) : RT CNatList :=
   fun env s =>
