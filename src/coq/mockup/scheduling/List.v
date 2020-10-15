@@ -131,8 +131,23 @@ Definition insert_Jobs (jobs_to_insert : JobList)
                        : RT JobList :=
   ret (insert_Jobs_aux jobs_to_insert list comp_func).
 
-Definition C_map_Entry_Entry (func : Entry -> Entry) (entry_list : EntryList) : RT EntryList :=
+Definition C_map_Entry_Entry (func : Entry -> RT Entry) (entry_list : EntryList) : RT EntryList :=
   ret (map func entry_list).
+
+Definition insert_active_entry (entry : Entry) (comp_func : Entry -> Entry -> bool) : RT unit :=
+  fun _ s => (a, {|
+                  now := now s,
+                  active_entries := (insert_Entry_aux entry 
+                                                      (active_entries s)
+                                                      comp_func)
+                 |}
+             ).
+
+Definition update_entries (func : Entry -> Entry) : RT unit :=
+  fun _ s => (a, {|
+                  now := now s,
+                  active_entries := map func (active_entries s)
+                |}).
 
 Definition C_map_CNat_Entry (func : nat -> Entry) (nat_list : CNatList) : RT EntryList :=
   ret (map func nat_list).

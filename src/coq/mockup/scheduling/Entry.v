@@ -44,11 +44,16 @@ Definition get_entry_delete (entry : Entry) : RT nat :=
   ret (del entry).
 
 Definition decrease_del (entry : Entry) : RT Entry :=
-  ret ((fun e => {|
+  ret ((
+
+fun e => {|
       id := e.(id);
       cnt := e.(cnt);
       del := pred e.(del)
-  |}) entry).
+  |}
+
+
+) entry).
 
 Definition decrease_cnt (entry : Entry) : RT Entry :=
   ret (

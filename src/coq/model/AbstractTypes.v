@@ -56,7 +56,8 @@ Record State :=
   mk_State
     {
       now : nat ;
-      active : EntryList
+      (*jobs_arriving : CNatList ;*)
+      active : EntryList ;
     }.
 
 

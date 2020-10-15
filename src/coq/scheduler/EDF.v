@@ -99,18 +99,26 @@ Definition insert_new_active_entries (new_active_entries : EntryList) : RT unit 
 
 Definition remove_first : RT unit :=
 (*fun _ s =>  (tt, {| now := s.(now); active := tail s.(active) |}).*)
-  do active_entries <- get_active_entries ;
-  do removed_head_active_entries <- remove_EntryList_head active_entries ;
-  set_active_entries removed_head_active_entries.
+  (*do active_entries <- get_active_entries ;*)
+  do removed_head_active_entries <- remove_active_entries_head.
+  (*set_active_entries removed_head_active_entries.*)
 
 Definition get_running : RT nat :=
   do active_entries <- get_active_entries ;
   do running_entry <- get_EntryList_head active_entries ;
   get_entry_id running_entry.
 
+Definition insert_new_entries (new_jobs : JobSet) (new_jobs_size : nat) : RT unit :=
+  match new_jobs_size with
+  | 0 => ret tt
+  | S(n) => do new_job_id <- get_job_id new_jobs new_jobs_size n ;
+            do new_entry <- create_entry_from_job_id new_job_id ;
+            insert_active_entry new_entry cmp_entry_deadline ;;
+            insert_new_entries new_jobs n
+  end.
+
 (** Updates the list of Entries to schedule (new jobs given by a primitive) *)
 Definition update_entries(N : nat) : RT ((option nat)* bool) :=
-  do new_jobs <- jobs_arriving N ; (* get all jobs arriving at current time, having id < N *)
   do finished <- job_terminating;  (* does a job finish at current time ? *)
   do expired <- job_expired;       (* is the job expired ? *)
   do late <- job_late ;            (* did the job exceed its deadline ?*)
@@ -122,9 +130,17 @@ Definition update_entries(N : nat) : RT ((option nat)* bool) :=
     ret tt)
   ;;
 
+  do new_jobs <- jobs_arriving N ; (* get all jobs arriving at current time, having id < N *)
+  do new_jobs_length <- get_length new_jobs ;
+  insert_new_entries new_jobs new_jobs_length ;;
+
+(*
   do active_entries <- get_active_entries ;
+  (*map_insert create_entries_from_job_id arriving_jobs*)
+
   do new_entries <- C_map_CNat_Entry create_entry_from_job_id new_jobs ;
   do new_active_entries <- insert_Entries new_entries active_entries cmp_entry_deadline ;
+*)
   (*insert_entries (* insert new entries generated from the new incoming jobs in the active list *)
     (map 
       (fun job_id => mk_Entry job_id (Jobs job_id).(budget) (S((Jobs job_id).(deadline)-(Jobs job_id).(arrival)))) 
@@ -137,14 +153,14 @@ Definition update_entries(N : nat) : RT ((option nat)* bool) :=
 
 (* Rewrite me, monadic + Clist *)
 Definition decrease_cnt_first : RT unit :=
-  do active_entries <- get_active_entries ;
-  do current_job_entry <- get_EntryList_head active_entries ;
-  do decreased_counter_current_job_entry <- decrease_counter current_job_entry ;
-  (* This is insane in C - the following operations correspond to identity *)
-  (* ALED *)
+  do current_job_entry <- get_active_entries_head ;
+  do decreased_counter_current_job_entry <- decrease_counter current_job_entry ; (*decrease_counter entry -> entry*)
+  set_head decreased_counter_current_job_entry.
+
+(*
   do active_entries_tail <- get_EntryList_tail active_entries ;
   do updated_active_entries <- add_EntryList_head decreased_counter_current_job_entry active_entries_tail ;
-  set_active_entries updated_active_entries.
+  set_active_entries updated_active_entries.*)
 (* fun _ s => match s.(active) with
 | [] => (tt, s)
 | e :: es =>
