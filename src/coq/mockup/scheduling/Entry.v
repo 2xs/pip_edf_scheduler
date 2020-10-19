@@ -29,7 +29,7 @@ From Model Require Import AbstractFunctions.
 From Model Require Import AbstractTypes.
 From Model Require Import Monad.
 
-Parameter default_Entry : Entry.
+Parameter default_entry : Entry.
 Parameter is_default_entry : Entry -> RT bool.
 
 (* TODO constructor accessors *)
@@ -43,26 +43,21 @@ Definition get_entry_id (entry : Entry) : RT nat :=
 Definition get_entry_delete (entry : Entry) : RT nat :=
   ret (del entry).
 
-Definition decrease_del (entry : Entry) : RT Entry :=
-  ret ((
-
-fun e => {|
+Definition decrease_del (entry : Entry) : Entry :=
+  (fun e =>
+  {|
       id := e.(id);
       cnt := e.(cnt);
       del := pred e.(del)
-  |}
+  |}) entry.
 
-
-) entry).
-
-Definition decrease_cnt (entry : Entry) : RT Entry :=
-  ret (
-    (fun e => {|
+Definition decrease_cnt (entry : Entry) : Entry :=
+  (fun e =>
+  {|
       id := e.(id);
       cnt := pred e.(cnt);
       del := e.(del)
-    |})
-    entry).
+  |}) entry.
 
 Definition cmp_entry_deadline (entry1 entry2 : Entry) : bool :=
   Nat.leb

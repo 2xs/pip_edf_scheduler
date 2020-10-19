@@ -28,6 +28,7 @@
 From Model Require Import Monad.
 
 Parameter default_nat : nat.
+Parameter is_default_nat : nat -> RT bool.
 
 Definition sub (n1 : nat) (n2 : nat) : RT nat :=
   ret (n1-n2).

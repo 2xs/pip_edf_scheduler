@@ -27,31 +27,12 @@
 
 From Model Require Import AbstractTypes.
 From Model Require Import Monad.
+From SchedulerMockup Require Import CNat.
 Require Import List.
 
-(* primitive *)
+(* get the id of the nth job from the jobs arriving *)
+Definition get_job_id (job_set : JobSet) (n : nat) : RT nat :=
+  ret (nth n job_set default_nat).
 
-Parameter Jobs : nat -> Job.
-
-Fixpoint insert_Entry_aux (entry : Entry)
-                          (entry_list : list Entry)
-                          (comp_func : Entry -> Entry -> bool)
-                          : list Entry :=
-  match entry_list with
-  | nil => cons entry nil
-  | cons head tail =>
-      match comp_func entry head with
-      | true => cons entry (cons head tail)
-      | false => cons head (insert_Entry_aux entry tail comp_func)
-      end
-  end.
-
-Fixpoint insert_Entries_aux (entries_to_be_added : list Entry)
-                            (entry_list : list Entry)
-                            (comp_func : Entry -> Entry -> bool)
-                            : list Entry :=
-  match entries_to_be_added with
-  | nil => entry_list
-  | cons entry remaining_entries => 
-      insert_Entries_aux remaining_entries (insert_Entry_aux entry entry_list comp_func) comp_func
-  end.
+Definition get_length (job_set : JobSet) : RT nat :=
+  ret (length job_set).

@@ -31,7 +31,7 @@ From Model Require Import Monad.
 
 Require Import List.
 
-Definition jobs_arriving (N : nat) : RT CNatList :=
+Definition jobs_arriving (N : nat) : RT JobSet :=
   fun env s =>
     let f :=  List.filter (fun j =>  Nat.ltb j N) (map jobid (env s.(now))) in
      (f, s).

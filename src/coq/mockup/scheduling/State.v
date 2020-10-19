@@ -26,7 +26,10 @@
  *)
 
 From Model Require Import AbstractTypes.
+From Model Require Import AbstractFunctions.
 From Model Require Import Monad.
+From SchedulerMockup Require Import Entry.
+Require Import List.
 
 (* TODO définir des accesseurs pour la monade *)
 Definition get_time_counter : RT nat :=
@@ -40,13 +43,41 @@ Definition set_time_counter (time_counter  : nat) : RT unit :=
     |}
   ).
 
-Definition get_active_entries : RT EntryList :=
-  fun _ s => ((active s), s).
+Definition get_first_active_entry : RT Entry :=
+  fun _ s => match head (active s) with
+             | None => (default_entry, s)
+             | Some(entry) => (entry, s)
+             end.
 
-Definition set_active_entries (active_list : EntryList) : RT unit :=
-  fun _ s => (tt,
-    {|
-      now    := (now s) ;
-      active := active_list ;
-    |}
-  ).
+Definition remove_first_active_entry : RT unit :=
+  fun _ s => (tt, {|
+                  now := now s ;
+                  active := tail (active s) ;
+                 |}
+             ).
+
+Definition insert_new_active_entry (entry : Entry) (comp_func : Entry -> Entry -> bool) : RT unit :=
+  fun _ s => (tt, {|
+                  now := now s ;
+                  active := (insert_Entry_aux entry
+                                              (active s)
+                                              comp_func) ;
+                 |}
+             ).
+
+Definition update_first_active_entry (func : Entry -> Entry) : RT unit :=
+  fun _ s => (tt, {|
+                  now := now s ;
+                  active := match head (active s) with
+                            | None => nil
+                            | Some(entry) => cons (func entry) (tail (active s))
+                            end ;
+                 |}
+             ).
+
+Definition update_active_entries (func : Entry -> Entry) : RT unit :=
+  fun _ s => (tt, {|
+                  now := now s ;
+                  active := map func (active s) ;
+                 |}
+             ).

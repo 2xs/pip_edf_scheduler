@@ -45,11 +45,7 @@ Record Job  :=
       deadline : nat
     }.
 
-
-Definition JobList := list Job.
-Definition EntryList := list Entry.
-Definition CNatList := list nat.
-
+Definition JobSet := list nat.
 
 (* type for the state *)
 Record State :=
@@ -57,11 +53,11 @@ Record State :=
     {
       now : nat ;
       (*jobs_arriving : CNatList ;*)
-      active : EntryList ;
+      active : list Entry ;
     }.
 
 
 (** Oracle for the scheduling plan *)
-Definition Env : Type := nat -> JobList.
+Definition Env : Type := nat -> list Job.
 
 
