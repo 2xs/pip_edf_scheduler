@@ -25,39 +25,31 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-(* type for an entry *)
-Record Entry :=
-  mk_Entry
-    {
-      id : nat ;
-      cnt : nat ;
-      del : nat
-    }.
+From SchedulerMockup Require Import CBool.
+From SchedulerMockup Require Import CNat.
+From SchedulerMockup Require Import Entry.
+From SchedulerMockup Require Import JobSet.
+From SchedulerMockup Require Import Jobs.
+From SchedulerMockup Require Import State.
+From SchedulerMockup Require Import CRet.
 
-(* type for a job  *)
-Record Job  :=
-  mk_Job
-    {
-      jobid : nat ;
-      arrival : nat ;
-      duration : nat ;
-      budget : nat ;
-      deadline : nat
-    }.
+From PartitionMockup Require Import PipTypes.
+From PartitionMockup Require Import PipWrappers.
+From PartitionMockup Require Import Primitives.
 
-Definition JobSet := list nat.
+From Scheduler Require Import EDF.
 
-(* type for the state *)
-Record State :=
-  mk_State
-    {
-      now : nat ;
-      (*jobs_arriving : CNatList ;*)
-      active : list Entry ;
-    }.
+Require Extraction.
+Extraction Language JSON.
 
-
-(** Oracle for the scheduling plan *)
-Definition Env : Type := nat -> list Job.
-
-Definition CRet : Type := (option nat) * bool.
+Extraction Library CBool.
+Extraction Library CNat.
+Extraction Library Entry.
+Extraction Library JobSet.
+Extraction Library Jobs.
+Extraction Library State.
+Extraction Library CRet.
+Extraction Library PipTypes.
+Extraction Library PipWrappers.
+Extraction Library Primitives.
+Extraction Library EDF.

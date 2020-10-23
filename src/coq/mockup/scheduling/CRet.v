@@ -25,14 +25,11 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-(* This Coq module uses the monad defined in the Monad module to
-   describe sequential computations. *)
+From Model Require Import Monad.
+From Model Require Import AbstractTypes.
 
-Require Import Model.Internals Main.Main String.
-Require Extraction.
-Extraction Language JSON.
-
-Extract Inductive string => "string" [ "strNil" "strCons" ].
-
-Extraction Library Internals.
-Extraction Library Main.
+Definition make_ret_type (exist : bool) (late : bool) (job_id : nat) : RT CRet :=
+  match exist with
+  | true  => ret (Some(job_id) , late)
+  | false => ret (None, late)
+  end.

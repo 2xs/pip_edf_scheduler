@@ -32,6 +32,7 @@ From SchedulerMockup Require Import Entry.
 From SchedulerMockup Require Import JobSet.
 From SchedulerMockup Require Import CNat.
 From SchedulerMockup Require Import CBool.
+From SchedulerMockup Require Import CRet.
 From SchedulerMockup Require Import State.
 From PartitionMockup Require Import Primitives.
 
@@ -47,7 +48,7 @@ Definition job_expired : RT bool :=
     ret false
   else
   do first_active_entry_counter <- get_entry_counter first_active_entry ;
-  CNat.eqb first_active_entry_counter 0.
+  CNat.eqb first_active_entry_counter zero.
 (*
   fun _ s => ((match head s.(active) with
          None => false
@@ -63,7 +64,7 @@ Definition job_late : RT bool :=
     ret false
   else
   do first_active_entry_delete <- get_entry_delete first_active_entry ;
-  CNat.eqb first_active_entry_delete 0.
+  CNat.eqb first_active_entry_delete zero.
 (*fun _ s => ((match head s.(active) with
          None => false
        | Some e =>
@@ -80,13 +81,19 @@ Definition create_entry_from_job_id (job_id : nat) : RT Entry :=
   make_entry job_id job_budget entry_del.
 
 (* primitive that inserts a list of entries according to its deadline *)
-Fixpoint insert_new_entries (new_jobs : JobSet) (new_jobs_size : nat) : RT unit :=
-  match new_jobs_size with
+Fixpoint insert_new_entries_aux timeout (new_jobs : JobSet) (new_jobs_size : nat) : RT unit :=
+  match timeout with
   | 0 => ret tt
-  | S(n) => do new_job_id <- get_job_id new_jobs n ;
-            do new_entry <- create_entry_from_job_id new_job_id ;
-            insert_new_active_entry new_entry cmp_entry_deadline ;;
-            insert_new_entries new_jobs n
+  | S(timeout1) =>
+      do no_more_jobs <- is_default_nat new_jobs_size ;
+      if no_more_jobs then
+        ret tt
+      else
+      do new_jobs_size_dec <- pred new_jobs_size ;
+      do new_job_id <- get_job_id new_jobs new_jobs_size_dec ;
+      do new_entry <- create_entry_from_job_id new_job_id ;
+      insert_new_active_entry new_entry cmp_entry_deadline ;;
+      insert_new_entries_aux timeout1 new_jobs new_jobs_size_dec
   end.
   (*
   fun _ s => (tt, {|
@@ -98,12 +105,15 @@ Fixpoint insert_new_entries (new_jobs : JobSet) (new_jobs_size : nat) : RT unit 
     |}).
   *)
 
+Definition insert_new_entries (rec_max : nat) (new_jobs : JobSet) (new_jobs_size : nat) : RT unit :=
+  insert_new_entries_aux rec_max new_jobs new_jobs_size.
+
 Definition get_running : RT nat :=
   do first_active_entry <- get_first_active_entry ;
   get_entry_id first_active_entry.
 
 (** Updates the list of Entries to schedule (new jobs given by a primitive) *)
-Definition update_entries(N : nat) : RT ((option nat)* bool) :=
+Definition update_entries(N : nat) : RT CRet :=
   do finished <- job_terminating;  (* does a job finish at current time ? *)
   do expired <- job_expired;       (* is the job expired ? *)
   do late <- job_late ;            (* did the job exceed its deadline ?*)
@@ -117,7 +127,7 @@ Definition update_entries(N : nat) : RT ((option nat)* bool) :=
 
   do new_jobs <- jobs_arriving N ; (* get all jobs arriving at current time, having id < N *)
   do new_jobs_length <- get_length new_jobs ;
-  insert_new_entries new_jobs new_jobs_length ;;
+  insert_new_entries N new_jobs new_jobs_length ;;
 
   (*insert_entries (* insert new entries generated from the new incoming jobs in the active list *)
     (map 
@@ -125,12 +135,10 @@ Definition update_entries(N : nat) : RT ((option nat)* bool) :=
       new_jobs
     ) ;;
   *)
-  do running_entry <- get_running ; (* obtain id of the running job (possibly none) from head of active list*)
-  do no_running_entry <- is_default_nat running_entry ;
-  if no_running_entry then
-    ret (None, late)
-  else
-    ret (Some(running_entry),late).
+  do running_entry_id <- get_running ; (* obtain id of the running job (possibly none) from head of active list*)
+  do no_running_entry <- is_default_nat running_entry_id ;
+  do ret_value <- make_ret_type no_running_entry late running_entry_id ;
+  ret ret_value.
   (*  return the job id (if any) that has beed running, and whether or not the job was late   *)
 
 (* Rewrite me, monadic + Clist *)
@@ -152,7 +160,7 @@ Definition decrease_cnt_first : RT unit :=
 Definition remove_first_if_expired : RT unit :=
   do first_active_entry <- get_first_active_entry ;
   do first_active_entry_counter <- get_entry_counter first_active_entry ;
-  do first_active_entry_is_expired <- CNat.eqb first_active_entry_counter 0 ;
+  do first_active_entry_is_expired <- CNat.eqb first_active_entry_counter zero ;
   if first_active_entry_is_expired then
     remove_first_active_entry
   else
@@ -193,7 +201,7 @@ Definition update_counters(N: nat) : RT unit :=
   inc_time_counter.
 
 (** Election function used by the partition *)
-Definition scheduler(N:nat)  : RT ((option nat)*bool) :=
+Definition scheduler(N:nat)  : RT CRet :=
   do p <- update_entries N ;
   update_counters N ;;
   ret p.

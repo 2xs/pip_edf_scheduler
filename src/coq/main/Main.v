@@ -28,12 +28,11 @@
 (* This Coq module uses the monad defined in the Monad module to
    describe sequential computations. *)
 
-Require Import Ascii String Model.Monad Model.Internals.
-
-Definition HelloWorld := append "Hello World !"%string (String (ascii_of_N 10) EmptyString).
+From Model Require Import Monad.
+From PartitionMockup Require Import PipTypes.
+From Scheduler Require Import EDF.
 
 (** Entrypoint *)
-(** TODO deal with Internals *)
 Definition main (bootinfo : pip_fpinfo_ptr) : RT unit :=
-  do scheduled_partition <- scheduler 0 ;
+  do scheduled_partition <- scheduler 15 ;
   ret tt.

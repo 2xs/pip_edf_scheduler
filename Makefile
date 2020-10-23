@@ -24,11 +24,14 @@ LDFLAGS+=-lpip
 
 COQOPTS= -Q proof Proof
 COQOPTS+=-Q $(COQ_DIR)/model Model
+COQOPTS+=-Q $(COQ_DIR)/mockup/partition PartitionMockup
+COQOPTS+=-Q $(COQ_DIR)/mockup/scheduling SchedulerMockup
+COQOPTS+=-Q $(COQ_DIR)/scheduler Scheduler
 COQOPTS+=-Q $(COQ_DIR)/main Main
 
 ASSOURCES=$(wildcard $(ASM_DIR)/*.s)
-CSOURCES=$(BUILD_DIR)/main.c
-VSOURCES=$(foreach dir, $(COQ_DIR)/main $(COQ_DIR)/model proof, $(wildcard $(dir)/*.v))
+CSOURCES=$(BUILD_DIR)/main.c $(BUILD_DIR)/edf.c
+VSOURCES=$(foreach dir, $(COQ_DIR)/main $(COQ_DIR)/model $(COQ_DIR)/scheduler $(COQ_DIR)/mockup/scheduler $(COQ_DIR)/mockup/partition proof, $(wildcard $(dir)/*.v))
 
 ASOBJ=$(ASSOURCES:.s=.o)
 COBJ=$(CSOURCES:.c=.o)
@@ -37,10 +40,11 @@ VOBJ=$(VSOURCES:.v=.vo)
 COBJ:=$(patsubst %,$(BUILD_DIR)/%, $(notdir $(COBJ)))
 ASOBJ:=$(patsubst %,$(BUILD_DIR)/%, $(notdir $(ASOBJ)))
 
-EXEC=gallina_hello_world.bin
-
 all: $(EXEC)
 	@echo  Done.
+
+# Final partition ELF
+EXEC=edf.elf
 
 clean: clean-coq clean-c
 
@@ -54,14 +58,38 @@ clean-c:
 $(EXEC): $(BUILD_DIR) $(ASOBJ) $(COBJ)
 	$(LD) $(ASOBJ) $(COBJ) -o $@ $(LDFLAGS)
 
-proofs: $(VOBJ)
+#proofs: $(VOBJ)
 
-$(BUILD_DIR)/main.c: Main.json
-	$(DIGGER) -m Monad -M coq_Ms -R returnM -B bindM                  \
+
+$(BUILD_DIR)/PipTypes.h: PipTypes.json
+	$(DIGGER) -m Monad -M coq_RT -R ret -B bind                       \
 	    -m Datatypes -r Coq_true:true -r Coq_false:false -r Coq_tt:tt \
-	    -m String -q base.h -q Monad.h -q Internals.h                 \
+	    -q base.h -q Internals.h                                      \
 	    -m Internals -d :Internals.json                               \
-	    --ignore HelloWorld -r coq_HelloWorld:HelloWorld		  \
+	    --header
+	    -o $@ $<
+
+$(BUILD_DIR)/PipWrappers.h: PipWrappers.json
+	$(DIGGER) -m Monad -M coq_RT -R ret -B bind                       \
+	    -m Datatypes -r Coq_true:true -r Coq_false:false -r Coq_tt:tt \
+	    -q base.h -q Internals.h                                      \
+	    -m Internals -d :Internals.json                               \
+	    --header
+	    -o $@ $<
+
+$(BUILD_DIR)/Primitives.h: Primitives.json
+	$(DIGGER) -m Monad -M coq_RT -R ret -B bind                       \
+	    -m Datatypes -r Coq_true:true -r Coq_false:false -r Coq_tt:tt \
+	    -q base.h -q Internals.h                                      \
+	    -m Internals -d :Internals.json                               \
+	    --header
+	    -o $@ $<
+
+$(BUILD_DIR)/main.c: Main.json EDF.json
+	$(DIGGER) -m Monad -M coq_RT -R ret -B bind                       \
+	    -m Datatypes -r Coq_true:true -r Coq_false:false -r Coq_tt:tt \
+	    -q base.h -q Internals.h                                      \
+	    -m Internals -d :Internals.json                               \
 	    -o $@ $<
 
 -include $(addsuffix .d,$(VSOURCES))
