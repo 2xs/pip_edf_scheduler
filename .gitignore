@@ -1,7 +1,11 @@
-*.aux
+.*.aux
 *.vo
 *.vok
 *.vos
 *.v.d
 *.glob
 *.json
+*.d
+Makefile.coq
+Makefile.coq.conf
+*~
