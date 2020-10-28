@@ -25,9 +25,9 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-From Model Require Import AbstractFunctions.
-From Model Require Import AbstractTypes.
-From Model Require Import Monad.
+From Scheduler.Model Require Import AbstractFunctions.
+From Scheduler.Model Require Import AbstractTypes.
+From Scheduler.Model Require Import Monad.
 
 Require Import List.
 

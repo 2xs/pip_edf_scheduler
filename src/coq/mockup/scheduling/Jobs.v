@@ -27,9 +27,9 @@
 
 (* /!\ Proof related content on Jobs are located in proof/JobsAxioms.v *)
 
-From Model Require Import AbstractFunctions.
-From Model Require Import AbstractTypes.
-From Model Require Import Monad.
+From Scheduler.Model Require Import AbstractFunctions.
+From Scheduler.Model Require Import AbstractTypes.
+From Scheduler.Model Require Import Monad.
 (*
 Parameter default_Job : Job.
 Parameter is_default_job : Job -> RT bool.

@@ -25,9 +25,9 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-From Model Require Import AbstractTypes.
-From Model Require Import Monad.
-From SchedulerMockup Require Import CNat.
+From Scheduler.Model Require Import AbstractTypes.
+From Scheduler.Model Require Import Monad.
+From Scheduler.SchedulerMockup Require Import CNat.
 Require Import List.
 
 (* get the id of the nth job from the jobs arriving *)

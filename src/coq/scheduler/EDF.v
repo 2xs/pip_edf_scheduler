@@ -25,16 +25,16 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-From Model Require Import Monad.
-From Model Require Import AbstractTypes.
-From SchedulerMockup Require Import Jobs.
-From SchedulerMockup Require Import Entry.
-From SchedulerMockup Require Import JobSet.
-From SchedulerMockup Require Import CNat.
-From SchedulerMockup Require Import CBool.
-From SchedulerMockup Require Import CRet.
-From SchedulerMockup Require Import State.
-From PartitionMockup Require Import Primitives.
+From Scheduler.Model Require Import Monad.
+From Scheduler.Model Require Import AbstractTypes.
+From Scheduler.SchedulerMockup Require Import Jobs.
+From Scheduler.SchedulerMockup Require Import Entry.
+From Scheduler.SchedulerMockup Require Import JobSet.
+From Scheduler.SchedulerMockup Require Import CNat.
+From Scheduler.SchedulerMockup Require Import CBool.
+From Scheduler.SchedulerMockup Require Import CRet.
+From Scheduler.SchedulerMockup Require Import State.
+From Scheduler.PartitionMockup Require Import Primitives.
 
 (** Computations made during the election of the next Job to schedule *)
 

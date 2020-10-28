@@ -25,19 +25,19 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-From SchedulerMockup Require Import CBool.
-From SchedulerMockup Require Import CNat.
-From SchedulerMockup Require Import Entry.
-From SchedulerMockup Require Import JobSet.
-From SchedulerMockup Require Import Jobs.
-From SchedulerMockup Require Import State.
-From SchedulerMockup Require Import CRet.
+From Scheduler.SchedulerMockup Require Import CBool.
+From Scheduler.SchedulerMockup Require Import CNat.
+From Scheduler.SchedulerMockup Require Import Entry.
+From Scheduler.SchedulerMockup Require Import JobSet.
+From Scheduler.SchedulerMockup Require Import Jobs.
+From Scheduler.SchedulerMockup Require Import State.
+From Scheduler.SchedulerMockup Require Import CRet.
 
-From PartitionMockup Require Import PipTypes.
-From PartitionMockup Require Import PipWrappers.
-From PartitionMockup Require Import Primitives.
+From Scheduler.PartitionMockup Require Import PipTypes.
+From Scheduler.PartitionMockup Require Import PipWrappers.
+From Scheduler.PartitionMockup Require Import Primitives.
 
-From Scheduler Require Import EDF.
+From Scheduler.EDF Require Import EDF.
 
 Require Extraction.
 Extraction Language JSON.

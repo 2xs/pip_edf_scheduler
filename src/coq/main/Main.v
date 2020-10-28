@@ -28,9 +28,9 @@
 (* This Coq module uses the monad defined in the Monad module to
    describe sequential computations. *)
 
-From Model Require Import Monad.
-From PartitionMockup Require Import PipTypes.
-From Scheduler Require Import EDF.
+From Scheduler.Model Require Import Monad.
+From Scheduler.PartitionMockup Require Import PipTypes.
+From Scheduler.EDF Require Import EDF.
 
 (** Entrypoint *)
 Definition main (bootinfo : pip_fpinfo_ptr) : RT unit :=
