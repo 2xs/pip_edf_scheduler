@@ -31,7 +31,6 @@ From Model Require Import Monad.
 From SchedulerMockup Require Import Entry.
 Require Import List.
 
-(* TODO définir des accesseurs pour la monade *)
 Definition get_time_counter : RT nat :=
   fun _ s => ((now s), s).
 

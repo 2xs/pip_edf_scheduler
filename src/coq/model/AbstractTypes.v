@@ -25,6 +25,8 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
+Parameter N : nat.
+
 (* type for an entry *)
 Record Entry :=
   mk_Entry

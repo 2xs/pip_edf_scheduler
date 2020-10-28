@@ -113,7 +113,7 @@ Definition get_running : RT nat :=
   get_entry_id first_active_entry.
 
 (** Updates the list of Entries to schedule (new jobs given by a primitive) *)
-Definition update_entries(N : nat) : RT CRet :=
+Definition update_entries : RT CRet :=
   do finished <- job_terminating;  (* does a job finish at current time ? *)
   do expired <- job_expired;       (* is the job expired ? *)
   do late <- job_late ;            (* did the job exceed its deadline ?*)
@@ -194,14 +194,14 @@ Definition inc_time_counter : RT unit :=
   do next_time_counter <- succ time_counter ;
   set_time_counter next_time_counter.
 
-Definition update_counters(N: nat) : RT unit :=
+Definition update_counters : RT unit :=
   decrease_cnt_first;; (* decrease cnt field of first entry corresponding to the running job*)
   remove_first_if_expired;; (* if field became 0 the budget's job is 0 : remove it from actve list *)
   decrease_all_del ;;
   inc_time_counter.
 
 (** Election function used by the partition *)
-Definition scheduler(N:nat)  : RT CRet :=
-  do p <- update_entries N ;
-  update_counters N ;;
+Definition scheduler : RT CRet :=
+  do p <- update_entries ;
+  update_counters ;;
   ret p.
