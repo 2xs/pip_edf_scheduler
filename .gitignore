@@ -10,4 +10,3 @@ Makefile.coq
 Makefile.coq.conf
 *~
 EDF.c
-tools/digger
