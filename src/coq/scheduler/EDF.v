@@ -105,8 +105,8 @@ Fixpoint insert_new_entries_aux timeout (new_jobs : JobSet) (new_jobs_size : nat
     |}).
   *)
 
-Definition insert_new_entries (rec_max : nat) (new_jobs : JobSet) (new_jobs_size : nat) : RT unit :=
-  insert_new_entries_aux rec_max new_jobs new_jobs_size.
+Definition insert_new_entries (new_jobs : JobSet) (new_jobs_size : nat) : RT unit :=
+  insert_new_entries_aux N new_jobs new_jobs_size.
 
 Definition get_running : RT nat :=
   do first_active_entry <- get_first_active_entry ;
@@ -127,7 +127,7 @@ Definition update_entries : RT CRet :=
 
   do new_jobs <- jobs_arriving N ; (* get all jobs arriving at current time, having id < N *)
   do new_jobs_length <- get_length new_jobs ;
-  insert_new_entries N new_jobs new_jobs_length ;;
+  insert_new_entries new_jobs new_jobs_length ;;
 
   (*insert_entries (* insert new entries generated from the new incoming jobs in the active list *)
     (map 

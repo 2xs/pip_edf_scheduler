@@ -34,5 +34,5 @@ From Scheduler.EDF Require Import EDF.
 
 (** Entrypoint *)
 Definition main (bootinfo : pip_fpinfo_ptr) : RT unit :=
-  do scheduled_partition <- scheduler 15 ;
+  do scheduled_partition <- scheduler ;
   ret tt.
