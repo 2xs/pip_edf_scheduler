@@ -33,8 +33,8 @@ From Scheduler.SchedulerMockup Require Import Jobs.
 From Scheduler.SchedulerMockup Require Import State.
 From Scheduler.SchedulerMockup Require Import CRet.
 
-From Scheduler.PartitionMockup Require Import PipTypes.
-From Scheduler.PartitionMockup Require Import PipWrappers.
+(*From Scheduler.PartitionMockup Require Import PipTypes.*)
+(*From Scheduler.PartitionMockup Require Import PipWrappers.*)
 From Scheduler.PartitionMockup Require Import Primitives.
 
 From Scheduler.EDF Require Import EDF.
