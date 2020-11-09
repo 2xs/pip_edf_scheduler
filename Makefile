@@ -1,4 +1,4 @@
-DIGGER=/home/debilausaure/Documents/pip/glue/tools/digger/digger
+DIGGER=tools/digger/digger
 
 all: coq_compilation
 	

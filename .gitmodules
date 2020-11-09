@@ -1,0 +1,4 @@
+[submodule "tools/digger"]
+	path = tools/digger
+	url = https://github.com/2xs/digger
+	branch = develop
