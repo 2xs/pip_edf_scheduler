@@ -2,11 +2,11 @@ DIGGER=tools/digger/digger
 JSONS=EDF.json CNat.json CBool.json CRet.json State.json Primitives.json Jobs.json Entry.json JobSet.json
 
 all: coq_compilation
-	
-coq_compilation : $(JSONS)
+coq_compilation : src/coq/main/Main.vo
+extraction : $(JSONS)
 
 clean: Makefile.coq
-	+$(MAKE) -f Makefile.coq clean
+	$(MAKE) -f Makefile.coq clean
 	rm -f Makefile.coq Makefile.coq.conf *~ .*.aux *.crashcoqide
 	rm -f EDF.c
 	rm -f $(JSONS)
@@ -15,7 +15,7 @@ Makefile.coq: _CoqProject
 	$(COQBIN)coq_makefile -f _CoqProject -o Makefile.coq src/coq/*/*.v src/coq/*/*/*.v proof/*.v
 
 $(JSONS) &: Makefile.coq
-	+$(MAKE) -f Makefile.coq all
+	$(MAKE) -f Makefile.coq src/coq/mockup/Extraction.vo
 
 EDF.c: $(JSONS)
 	$(DIGGER) -m Monad -m AbstractTypes -m Datatypes -M coq_RT -d CNat:CNat.json -d CBool:CBool.json -d CRet:CRet.json -d State:State.json -d Primitives:Primitives.json -d Jobs:Jobs.json -d Entry:Entry.json -d JobSet:JobSet.json -o EDF.c EDF.json
@@ -24,4 +24,4 @@ EDF.c: $(JSONS)
 %: Makefile.coq
 	+$(MAKE) -f Makefile.coq $@
 
-.PHONY: all coq_compilation clean _CoqProject
+.PHONY: all coq_compilation extraction clean _CoqProject
