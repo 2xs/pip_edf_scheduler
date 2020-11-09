@@ -30,17 +30,17 @@ From Scheduler.Model Require Import AbstractTypes.
 From Scheduler.Model Require Import Monad.
 
 Parameter default_entry : Entry.
-Parameter is_default_entry : Entry -> RT bool.
+Parameter is_default_entry : Entry -> RT CBool.
 
 (* TODO constructor accessors *)
 
-Definition get_entry_counter (entry : Entry) : RT nat :=
+Definition get_entry_counter (entry : Entry) : RT CNat :=
   ret (cnt entry).
 
-Definition get_entry_id (entry : Entry) : RT nat :=
+Definition get_entry_id (entry : Entry) : RT CNat :=
   ret (id entry).
 
-Definition get_entry_delete (entry : Entry) : RT nat :=
+Definition get_entry_delete (entry : Entry) : RT CNat :=
   ret (del entry).
 
 Definition decrease_del (entry : Entry) : Entry :=
@@ -59,7 +59,7 @@ Definition decrease_cnt (entry : Entry) : Entry :=
       del := e.(del)
   |}) entry.
 
-Definition cmp_entry_deadline (entry1 entry2 : Entry) : bool :=
+Definition cmp_entry_deadline (entry1 entry2 : Entry) : CBool :=
   Nat.leb
     (Jobs(entry1.(id))).(deadline)
     (Jobs(entry2.(id))).(deadline).

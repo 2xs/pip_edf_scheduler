@@ -38,7 +38,7 @@ Definition jobs_arriving (N : nat) : RT JobSet :=
 
 (* primitive that checks whether the current job is terminated *)
 (* Primitive *)
-Definition job_terminating : RT bool :=
+Definition job_terminating : RT CBool :=
 fun _ s => ((match head s.(active) with
          None => false
        | Some e =>

@@ -31,7 +31,7 @@ From Scheduler.Model Require Import Monad.
 From Scheduler.SchedulerMockup Require Import Entry.
 Require Import List.
 
-Definition get_time_counter : RT nat :=
+Definition get_time_counter : RT CNat :=
   fun _ s => ((now s), s).
 
 Definition set_time_counter (time_counter  : nat) : RT unit :=
@@ -55,7 +55,7 @@ Definition remove_first_active_entry : RT unit :=
                  |}
              ).
 
-Definition insert_new_active_entry (entry : Entry) (comp_func : Entry -> Entry -> bool) : RT unit :=
+Definition insert_new_active_entry (entry : Entry) (comp_func : Entry -> Entry -> CBool) : RT unit :=
   fun _ s => (tt, {|
                   now := now s ;
                   active := (insert_Entry_aux entry

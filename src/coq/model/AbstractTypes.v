@@ -25,41 +25,44 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-Parameter N : nat.
+Definition CNat := nat.
+Parameter N : CNat.
+
+Definition CBool := bool.
+Definition CRet : Type := (option CNat) * CBool.
 
 (* type for an entry *)
 Record Entry :=
   mk_Entry
     {
-      id : nat ;
-      cnt : nat ;
-      del : nat
+      id : CNat ;
+      cnt : CNat ;
+      del : CNat
     }.
 
 (* type for a job  *)
 Record Job  :=
   mk_Job
     {
-      jobid : nat ;
-      arrival : nat ;
-      duration : nat ;
-      budget : nat ;
-      deadline : nat
+      jobid : CNat ;
+      arrival : CNat ;
+      duration : CNat ;
+      budget : CNat ;
+      deadline : CNat
     }.
 
-Definition JobSet := list nat.
+Definition JobSet := list CNat.
 
 (* type for the state *)
 Record State :=
   mk_State
     {
-      now : nat ;
+      now : CNat ;
       (*jobs_arriving : CNatList ;*)
       active : list Entry ;
     }.
 
 
 (** Oracle for the scheduling plan *)
-Definition Env : Type := nat -> list Job.
+Definition Env : Type := CNat -> list Job.
 
-Definition CRet : Type := (option nat) * bool.

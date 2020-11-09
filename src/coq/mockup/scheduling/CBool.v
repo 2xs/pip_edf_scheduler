@@ -25,10 +25,11 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
+From Scheduler.Model Require Import AbstractTypes.
 From Scheduler.Model Require Import Monad.
 
-Definition not (b : bool) : RT bool :=
+Definition not (b : CBool) : RT CBool :=
   ret (negb b).
 
-Definition and (b1 b2 : bool) : RT bool :=
+Definition and (b1 b2 : CBool) : RT CBool :=
   ret (andb b1 b2).

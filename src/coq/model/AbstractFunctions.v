@@ -31,11 +31,11 @@ Require Import List.
 
 (* primitive *)
 
-Parameter Jobs : nat -> Job.
+Parameter Jobs : CNat -> Job.
 
 Fixpoint insert_Entry_aux (entry : Entry)
                           (entry_list : list Entry)
-                          (comp_func : Entry -> Entry -> bool)
+                          (comp_func : Entry -> Entry -> CBool)
                           : list Entry :=
   match entry_list with
   | nil => cons entry nil
@@ -48,7 +48,7 @@ Fixpoint insert_Entry_aux (entry : Entry)
 
 Fixpoint insert_Entries_aux (entries_to_be_added : list Entry)
                             (entry_list : list Entry)
-                            (comp_func : Entry -> Entry -> bool)
+                            (comp_func : Entry -> Entry -> CBool)
                             : list Entry :=
   match entries_to_be_added with
   | nil => entry_list

@@ -26,22 +26,23 @@
  *)
 
 From Scheduler.Model Require Import Monad.
+From Scheduler.Model Require Import AbstractTypes.
 
-Parameter default_nat : nat.
-Parameter is_default_nat : nat -> RT bool.
+Parameter default_nat : CNat.
+Parameter is_default_nat : nat -> RT CBool.
 
-Definition zero : nat := 0.
+Definition zero : CNat := 0.
 
-Definition sub (n1 : nat) (n2 : nat) : RT nat :=
+Definition sub (n1 : CNat) (n2 : CNat) : RT CNat :=
   ret (n1-n2).
 
-Definition succ (n : nat) : RT nat :=
+Definition succ (n : CNat) : RT CNat :=
   ret (S(n)).
 
-Definition pred (n : nat) : RT nat :=
+Definition pred (n : CNat) : RT CNat :=
   ret (pred n).
 
-Definition eqb (n1 n2 : nat) : RT bool :=
+Definition eqb (n1 n2 : CNat) : RT CBool :=
   ret (Nat.eqb n1 n2).
 
 (* TODO : refléter les entiers C plutot que les entiers naturels *)

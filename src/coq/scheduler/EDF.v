@@ -71,7 +71,7 @@ Definition job_late : RT bool :=
           Nat.eqb  e.(del)  0
          end), s).*)
 
-Definition create_entry_from_job_id (job_id : nat) : RT Entry :=
+Definition create_entry_from_job_id (job_id : CNat) : RT Entry :=
   do job <- get_job_from_job_id job_id ;
   do job_budget <- get_budget job ;
   do job_deadline <- get_deadline job ;
@@ -81,7 +81,7 @@ Definition create_entry_from_job_id (job_id : nat) : RT Entry :=
   make_entry job_id job_budget entry_del.
 
 (* primitive that inserts a list of entries according to its deadline *)
-Fixpoint insert_new_entries_aux timeout (new_jobs : JobSet) (new_jobs_size : nat) : RT unit :=
+Fixpoint insert_new_entries_aux timeout (new_jobs : JobSet) (new_jobs_size : CNat) : RT unit :=
   match timeout with
   | 0 => ret tt
   | S(timeout1) =>
@@ -105,10 +105,10 @@ Fixpoint insert_new_entries_aux timeout (new_jobs : JobSet) (new_jobs_size : nat
     |}).
   *)
 
-Definition insert_new_entries (new_jobs : JobSet) (new_jobs_size : nat) : RT unit :=
+Definition insert_new_entries (new_jobs : JobSet) (new_jobs_size : CNat) : RT unit :=
   insert_new_entries_aux N new_jobs new_jobs_size.
 
-Definition get_running : RT nat :=
+Definition get_running : RT CNat :=
   do first_active_entry <- get_first_active_entry ;
   get_entry_id first_active_entry.
 

@@ -35,13 +35,13 @@ Parameter default_Job : Job.
 Parameter is_default_job : Job -> RT bool.
 *)
 (** TODO define monadic constructors *)
-Definition get_budget (job : Job) : RT nat :=
+Definition get_budget (job : Job) : RT CNat :=
   ret (budget job).
 
-Definition get_arrival (job : Job) : RT nat :=
+Definition get_arrival (job : Job) : RT CNat :=
   ret (arrival job).
 
-Definition get_deadline (job : Job) : RT nat :=
+Definition get_deadline (job : Job) : RT CNat :=
   ret (deadline job).
 (*
 (** TODO define comparison functions *)

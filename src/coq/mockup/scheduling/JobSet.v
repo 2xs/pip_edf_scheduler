@@ -31,8 +31,8 @@ From Scheduler.SchedulerMockup Require Import CNat.
 Require Import List.
 
 (* get the id of the nth job from the jobs arriving *)
-Definition get_job_id (job_set : JobSet) (n : nat) : RT nat :=
+Definition get_job_id (job_set : JobSet) (n : CNat) : RT CNat :=
   ret (nth n job_set default_nat).
 
-Definition get_length (job_set : JobSet) : RT nat :=
+Definition get_length (job_set : JobSet) : RT CNat :=
   ret (length job_set).

@@ -28,7 +28,7 @@
 From Scheduler.Model Require Import Monad.
 From Scheduler.Model Require Import AbstractTypes.
 
-Definition make_ret_type (exist : bool) (late : bool) (job_id : nat) : RT CRet :=
+Definition make_ret_type (exist : CBool) (late : CBool) (job_id : CNat) : RT CRet :=
   match exist with
   | true  => ret (Some(job_id) , late)
   | false => ret (None, late)
