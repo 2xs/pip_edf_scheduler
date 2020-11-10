@@ -6,6 +6,7 @@
 *.glob
 *.json
 *.d
+.*.cache
 Makefile.coq
 Makefile.coq.conf
 *~
