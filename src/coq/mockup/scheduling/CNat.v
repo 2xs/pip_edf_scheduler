@@ -29,7 +29,7 @@ From Scheduler.Model Require Import Monad.
 From Scheduler.Model Require Import AbstractTypes.
 
 Parameter default_nat : CNat.
-Parameter is_default_nat : nat -> RT CBool.
+Parameter is_default_nat : CNat -> RT CBool.
 
 Definition zero : CNat := 0.
 

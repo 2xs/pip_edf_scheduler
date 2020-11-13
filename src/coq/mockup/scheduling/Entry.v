@@ -64,5 +64,5 @@ Definition cmp_entry_deadline (entry1 entry2 : Entry) : CBool :=
     (Jobs(entry1.(id))).(deadline)
     (Jobs(entry2.(id))).(deadline).
 
-Definition make_entry (id : nat) (cnt : nat) (del : nat) : RT Entry :=
+Definition make_entry (id : CNat) (cnt : CNat) (del : CNat) : RT Entry :=
   ret (mk_Entry id cnt del).
