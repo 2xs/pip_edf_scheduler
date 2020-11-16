@@ -11,3 +11,4 @@ Makefile.coq
 Makefile.coq.conf
 *~
 EDF.c
+*.o

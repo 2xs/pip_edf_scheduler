@@ -1,6 +1,10 @@
 DIGGER=tools/digger/digger
 JSONS=EDF.json CNat.json CBool.json CRet.json State.json Primitives.json Jobs.json Entry.json JobSet.json
 
+INCLUDES=src/include
+
+CFLAGS+=-Wall -Wextra -I $(INCLUDES)
+
 all: coq_compilation
 
 coq_compilation:
@@ -10,6 +14,7 @@ clean: Makefile.coq
 	$(MAKE) -f Makefile.coq clean
 	rm -f Makefile.coq Makefile.coq.conf *~ .*.aux *.crashcoqide
 	rm -f EDF.c
+	rm -f EDF.o
 	rm -f $(JSONS)
 
 Makefile.coq: _CoqProject
@@ -18,8 +23,19 @@ Makefile.coq: _CoqProject
 $(JSONS) &: coq_compilation ;
 
 EDF.c: $(JSONS)
-	$(DIGGER) -m Monad -m AbstractTypes -m Datatypes -M coq_RT -d CNat:CNat.json -d CBool:CBool.json -d CRet:CRet.json -d State:State.json -d Primitives:Primitives.json -d Jobs:Jobs.json -d Entry:Entry.json -d JobSet:JobSet.json -o EDF.c EDF.json
-#	$(DIGGER) -m Monad -m Datatypes -M coq_RT -m CNat -d CNat:CNat.json -m CBool -d CBool:CBool.json -m CRet -d CRet:CRet.json -m State -d State:State.json -m Primitives -d Primitives:Primitives.json -m Jobs -d Jobs:Jobs.json -m Entry -d Entry:Entry.json -m JobSet -d JobSet:JobSet.json -o $@ $<
+	$(DIGGER) -m Monad -m AbstractTypes -m Datatypes -M coq_RT\
+		  -d CNat:CNat.json -q CNat.h\
+		  -d CBool:CBool.json -q CBool.h\
+		  -d CRet:CRet.json -q CRet.h\
+		  -d State:State.json -q State.h\
+		  -d Primitives:Primitives.json -q Primitives.h\
+		  -d Jobs:Jobs.json -q Jobs.h\
+		  -d Entry:Entry.json -q Entry.h\
+		  -d JobSet:JobSet.json -q JobSet.h\
+		  -o EDF.c EDF.json
+
+EDF.o: EDF.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 _CoqProject: ;
 
