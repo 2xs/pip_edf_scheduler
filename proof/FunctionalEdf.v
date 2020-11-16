@@ -4,7 +4,6 @@ Require Import Coq.Bool.Bool.
 Require Import Omega.
 Require Import Lia.
 From Scheduler.Proof Require Import Lib Assumptions JobsAxioms EdfPolicy.
-
 From Scheduler.Model Require Import AbstractTypes AbstractFunctions.
 From Scheduler.SchedulerMockup Require Import Jobs.
 
