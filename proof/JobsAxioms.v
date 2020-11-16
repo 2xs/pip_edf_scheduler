@@ -31,7 +31,7 @@ From Scheduler.Model Require Import AbstractFunctions.
 From Scheduler.Model Require Import AbstractTypes.
 From Scheduler.SchedulerMockup Require Import Jobs.
 Require Import List.
-Module Type JobsMod.
+Module Type JobsAxiomsMod.
 
   (* job_id -> job *)
   (*Parameter Jobs : nat -> Job.*)
@@ -63,4 +63,4 @@ Module Type JobsMod.
       nth i (jobs_arriving_at t) 0 = nth i' (jobs_arriving_at t') 0 ->
       (t = t' /\ i = i').
 
-End JobsMod.
+End JobsAxiomsMod.
