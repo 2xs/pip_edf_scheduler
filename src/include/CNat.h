@@ -2,11 +2,13 @@
 #define __CNAT_H__
 
 #include "CBool.h"
+#include <limits.h>
 
-typedef coq_CNat unsigned;
+typedef unsigned coq_CNat;
 
-#define zero 0u
-#define default_nat zero
+#define CNat_zero 0u
+#define default_nat CNat_zero
+#define coq_N UINT_MAX
 
 static inline coq_CBool CNat_is_default_nat(coq_CNat n) {
 	return n == default_nat;
@@ -16,6 +18,11 @@ static inline coq_CBool CNat_is_default_nat(coq_CNat n) {
 static inline coq_CNat CNat_sub(coq_CNat n1, coq_CNat n2) {
 	if (n2 > n1) return 0;
 	return n1 - n2;
+}
+
+static inline coq_CNat CNat_succ(coq_CNat n) {
+	if ((n + 1) == 0) for(;;);
+	return n + 1;
 }
 
 // I wanna die again, Coq nats do not underflow (obviously).

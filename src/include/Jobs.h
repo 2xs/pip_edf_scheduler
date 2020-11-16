@@ -3,7 +3,7 @@
 
 #include "CNat.h"
 
-typedef coq_Job int;
+typedef int coq_Job;
 
 coq_CNat Jobs_get_budget(coq_Job job);
 coq_CNat Jobs_get_arrival(coq_Job job);

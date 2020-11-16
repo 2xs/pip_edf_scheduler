@@ -2,7 +2,7 @@
 #define __CRET_H__
 
 #include "CNat.h"
-#include "CBool"
+#include "CBool.h"
 
 typedef int coq_CRet;
 

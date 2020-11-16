@@ -4,7 +4,7 @@
 #include "CBool.h"
 #include "CNat.h"
 
-typedef coq_Entry int;
+typedef int coq_Entry;
 
 #define defaut_entry 0
 coq_CBool Entry_is_default_entry(coq_Entry entry);
@@ -13,8 +13,9 @@ coq_CNat Entry_get_entry_counter(coq_Entry entry);
 coq_CNat Entry_get_entry_id(coq_Entry entry);
 coq_CNat Entry_get_entry_delete(coq_Entry entry);
 
-void Entry_decrease_del(coq_Entry entry);
-void Entry_decrease_cnt(coq_Entry entry);
+
+coq_Entry Entry_decrease_del(coq_Entry entry);
+coq_Entry Entry_decrease_cnt(coq_Entry entry);
 
 coq_CBool Entry_cmp_entry_deadline(coq_Entry entry1, coq_Entry entry2);
 
