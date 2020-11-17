@@ -114,6 +114,7 @@ Definition get_running : RT CNat :=
 
 (** Updates the list of Entries to schedule (new jobs given by a primitive) *)
 Definition update_entries : RT CRet :=
+  do new_jobs <- jobs_arriving N ; (* get all jobs arriving at current time, having id < N *)
   do finished <- job_terminating;  (* does a job finish at current time ? *)
   do expired <- job_expired;       (* is the job expired ? *)
   do late <- job_late ;            (* did the job exceed its deadline ?*)
@@ -125,7 +126,6 @@ Definition update_entries : RT CRet :=
     ret tt)
   ;;
 
-  do new_jobs <- jobs_arriving N ; (* get all jobs arriving at current time, having id < N *)
   do new_jobs_length <- get_length new_jobs ;
   insert_new_entries new_jobs new_jobs_length ;;
 
