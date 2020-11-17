@@ -8,7 +8,7 @@ From Scheduler.Model Require Import Monad AbstractTypes AbstractFunctions.
 From Scheduler.SchedulerMockup Require Import Jobs.
 From Scheduler Require Import EDF.
 
-Module EdfRefinesFunctionalEdfMod (J :JobsAxiomsMod).
+Module RefinementMod (J :JobsAxiomsMod).
  Import J.
   
 Module F:= FunctionalEdfImplementsAssumptionsMod J.
@@ -26,8 +26,8 @@ Definition E :  Env := (fun k =>
                                 (jobs_arriving_at k))).
 
 
-Lemma edf_refines_functional_edf :  forall r s0 s,
+Lemma functional_edf_refines_monadic :  forall r s0 s,
    scheduler E s0 = (r,s) ->  functional_scheduler s0 = (r,s).
 Admitted.
 
-End EdfRefinesFunctionalEdfMod.
+End RefinementMod.
