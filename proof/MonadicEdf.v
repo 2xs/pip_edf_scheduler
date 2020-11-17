@@ -3,7 +3,7 @@ Import ListNotations.
 Require Import Coq.Bool.Bool.
 Require Import Omega.
 Require Import Lia.
-From Scheduler.Proof Require Import Lib Assumptions JobsAxioms EdfPolicy FunctionalEdf Hoare EdfPolicy EdfRefinesFunctionalEdf.
+From Scheduler.Proof Require Import Lib Assumptions JobsAxioms EdfPolicy FunctionalEdf Hoare EdfPolicy Refinement.
 From Scheduler.Model Require Import Monad AbstractTypes AbstractFunctions.
 From Scheduler.SchedulerMockup Require Import Jobs.
 From Scheduler Require Import EDF.
@@ -17,7 +17,7 @@ Import F.
 Module P := EdfPolicyMod J F.
 Import P.
 
-Module R := EdfRefinesFunctionalEdfMod J.
+Module R := RefinementMod J.
 Import R.
 Definition E :  Env := (fun k =>
                            (map (fun j =>
@@ -224,7 +224,7 @@ Proof.
 intros  s0 env s (Henv & Hs).
 rewrite Hs,Henv; clear Hs Henv.
 case_eq (scheduler E s0) ; intros r s' Hs.
-rewrite <- edf_refines_functional_edf with (s0 := s0)  ; auto.
+rewrite <- functional_edf_refines_monadic with (s0 := s0)  ; auto.
 Qed.
 
 Fixpoint scheduler_star (n : nat)  :=
