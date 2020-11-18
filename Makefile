@@ -14,7 +14,7 @@ clean: Makefile.coq
 	$(MAKE) -f Makefile.coq clean
 	rm -f Makefile.coq Makefile.coq.conf *~ .*.aux *.crashcoqide
 	rm -f EDF.c
-	rm -f EDF.o
+	rm -f *.o
 	rm -f $(JSONS)
 
 Makefile.coq: _CoqProject
@@ -34,7 +34,10 @@ EDF.c: $(JSONS)
 		  -d JobSet:JobSet.json -q JobSet.h\
 		  -o EDF.c EDF.json
 
-EDF.o: EDF.c
+Jobs.o: src/c/Jobs.c $(INCLUDES)/Jobs.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+EDF.o: EDF.c $(INCLUDES)/Jobs.h $(INCLUDES)/Entry.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 _CoqProject: ;

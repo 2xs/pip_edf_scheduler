@@ -4,8 +4,15 @@
 #include "CNat.h"
 #include "CBool.h"
 
-typedef int coq_CRet;
+typedef struct coq_CRet_s {
+       coq_CBool exists;
+       coq_CBool late;
+       coq_CNat job_id;
+} coq_CRet;
 
-coq_CRet CRet_make_ret_type(coq_CBool exist, coq_CBool late, coq_CNat job_id);
+static inline coq_CRet CRet_make_ret_type(coq_CBool exists, coq_CBool late, coq_CNat job_id) {
+	coq_CRet ret_value = {exists, late, job_id};
+	return ret_value;
+}
 
 #endif

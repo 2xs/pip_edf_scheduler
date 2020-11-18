@@ -26,6 +26,7 @@
  *)
 
 Definition CNat := nat.
+(* Maximal id of job *)
 Parameter N : CNat.
 
 Definition CBool := bool.

@@ -3,22 +3,49 @@
 
 #include "CBool.h"
 #include "CNat.h"
+#include "Jobs.h"
 
-typedef int coq_Entry;
+typedef struct embedded_coq_Entry_s coq_Entry_t;
 
-#define defaut_entry 0
-coq_CBool Entry_is_default_entry(coq_Entry entry);
+typedef coq_Entry_t *coq_Entry;
 
-coq_CNat Entry_get_entry_counter(coq_Entry entry);
-coq_CNat Entry_get_entry_id(coq_Entry entry);
-coq_CNat Entry_get_entry_delete(coq_Entry entry);
+#define default_entry (&(JOBS_ARRAY[0].entry))
+static inline coq_CBool Entry_is_default_entry(coq_Entry entry) {
+	return entry == default_entry;	
+};
+
+static inline coq_CNat Entry_get_entry_counter(coq_Entry entry) {
+	return entry->cnt;
+};
+
+static inline coq_CNat Entry_get_entry_id(coq_Entry entry) {
+	return entry->id;	
+};
+
+static inline coq_CNat Entry_get_entry_delete(coq_Entry entry){
+	return entry->del;	
+};
 
 
-coq_Entry Entry_decrease_del(coq_Entry entry);
-coq_Entry Entry_decrease_cnt(coq_Entry entry);
+static inline coq_Entry Entry_decrease_del(coq_Entry entry) {
+	(entry->del)--;
+	return entry;
+};
+static inline coq_Entry Entry_decrease_cnt(coq_Entry entry) {
+	(entry->cnt)--;
+	return entry;
+};
 
-coq_CBool Entry_cmp_entry_deadline(coq_Entry entry1, coq_Entry entry2);
+static inline coq_CBool Entry_cmp_entry_deadline(coq_Entry entry1, coq_Entry entry2) {
+	return entry1->del < entry2->del;
+};
 
-coq_Entry Entry_make_entry(coq_CNat id, coq_CNat cnt, coq_CNat del);
+static inline coq_Entry Entry_make_entry(coq_CNat id, coq_CNat cnt, coq_CNat del) {
+	coq_Entry entry = &(JOBS_ARRAY[id].entry);
+	entry->id = id;
+	entry->cnt = cnt;
+	entry->del = del;
+	return entry;	
+};
 
 #endif

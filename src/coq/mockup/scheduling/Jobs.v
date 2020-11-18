@@ -30,10 +30,9 @@
 From Scheduler.Model Require Import AbstractFunctions.
 From Scheduler.Model Require Import AbstractTypes.
 From Scheduler.Model Require Import Monad.
-(*
-Parameter default_Job : Job.
-Parameter is_default_job : Job -> RT bool.
-*)
+
+
+
 (** TODO define monadic constructors *)
 Definition get_budget (job : Job) : RT CNat :=
   ret (budget job).

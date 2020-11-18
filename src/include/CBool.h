@@ -1,11 +1,17 @@
 #ifndef __CBOOL_H__
 #define __CBOOL_H__
 
-#include <stdbool.h> 
+typedef int coq_CBool;
+#define bool coq_CBool
+#define false 0
+#define true (!false)
 
-typedef bool coq_CBool;
+static inline coq_CBool CBool_not(coq_CBool b) {
+	return !b;	
+}
 
-coq_CBool CBool_not(coq_CBool b);
-coq_CBool CBool_and(coq_CBool b1, coq_CBool b2);
+coq_CBool CBool_and(coq_CBool b1, coq_CBool b2) {
+	return b1 && b2;	
+};
 
 #endif
