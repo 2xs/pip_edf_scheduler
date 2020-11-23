@@ -42,11 +42,11 @@ From Scheduler.PartitionMockup Require Import Primitives.
 
 (* function that checks if the current job is expired *)
 Definition job_expired : RT bool :=
-  do first_active_entry <- get_first_active_entry ;
-  do no_active_entry <- is_default_entry first_active_entry ;
+  do no_active_entry <- is_active_list_empty ;
   if no_active_entry then
     ret false
   else
+  do first_active_entry <- get_first_active_entry ;
   do first_active_entry_counter <- get_entry_counter first_active_entry ;
   CNat.eqb first_active_entry_counter zero.
 (*
@@ -58,11 +58,11 @@ Definition job_expired : RT bool :=
 
 (* function that checks if the current job is late *)
 Definition job_late : RT bool :=
-  do first_active_entry <- get_first_active_entry ;
-  do no_active_entry <- is_default_entry first_active_entry ;
+  do no_active_entry <- is_active_list_empty ;
   if no_active_entry then
     ret false
   else
+  do first_active_entry <- get_first_active_entry ;
   do first_active_entry_delete <- get_entry_delete first_active_entry ;
   CNat.eqb first_active_entry_delete zero.
 (*fun _ s => ((match head s.(active) with
@@ -85,7 +85,7 @@ Fixpoint insert_new_entries_aux timeout (new_jobs : JobSet) (new_jobs_size : CNa
   match timeout with
   | 0 => ret tt
   | S(timeout1) =>
-      do no_more_jobs <- is_default_nat new_jobs_size ;
+      do no_more_jobs <- CNat.eqb new_jobs_size zero ;
       if no_more_jobs then
         ret tt
       else
@@ -135,10 +135,15 @@ Definition update_entries : RT CRet :=
       new_jobs
     ) ;;
   *)
-  do running_entry_id <- get_running ; (* obtain id of the running job (possibly none) from head of active list*)
-  do no_running_entry <- is_default_nat running_entry_id ;
-  do ret_value <- make_ret_type no_running_entry late running_entry_id ;
-  ret ret_value.
+  do no_active_entry <- is_active_list_empty;
+  (if no_active_entry then
+    do ret_value <- make_ret_type no_active_entry late default_nat ;
+    ret ret_value
+  else
+    do running_entry_id <- get_running ; (* obtain id of the running job from head of active list *)
+    do ret_value <- make_ret_type no_active_entry late running_entry_id ;
+    ret ret_value
+  ).
   (*  return the job id (if any) that has beed running, and whether or not the job was late   *)
 
 (* Rewrite me, monadic + Clist *)

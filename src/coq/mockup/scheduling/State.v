@@ -42,6 +42,12 @@ Definition set_time_counter (time_counter  : nat) : RT unit :=
     |}
   ).
 
+Definition is_active_list_empty : RT bool :=
+  fun _ s => match (active s) with
+             | nil => (true, s)
+             | _   => (false, s)
+             end.
+
 Definition get_first_active_entry : RT Entry :=
   fun _ s => match head (active s) with
              | None => (default_entry, s)
