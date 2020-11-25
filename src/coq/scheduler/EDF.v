@@ -137,11 +137,11 @@ Definition update_entries : RT CRet :=
   *)
   do no_active_entry <- is_active_list_empty;
   (if no_active_entry then
-    do ret_value <- make_ret_type no_active_entry late default_nat ;
+    do ret_value <- make_ret_type false late default_nat ;
     ret ret_value
   else
     do running_entry_id <- get_running ; (* obtain id of the running job from head of active list *)
-    do ret_value <- make_ret_type no_active_entry late running_entry_id ;
+    do ret_value <- make_ret_type true late running_entry_id ;
     ret ret_value
   ).
   (*  return the job id (if any) that has beed running, and whether or not the job was late   *)

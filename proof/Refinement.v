@@ -50,11 +50,21 @@ Definition add_new_entries (new_jobs : JobSet) :=
   insert_new_entries new_jobs new_jobs_length.
 
 Definition write_output (late : CBool) :=
+  do no_active_entry <- is_active_list_empty;
+  (if no_active_entry then
+    do ret_value <- make_ret_type false late default_nat ;
+    ret ret_value
+  else
+    do running_entry_id <- get_running ; (* obtain id of the running job from head of active list *)
+    do ret_value <- make_ret_type true late running_entry_id ;
+    ret ret_value
+  ).
+(*
   do running_entry_id <- get_running ; (* obtain id of the running job (possibly none) from head of active list*)
   do no_running_entry <- is_default_nat running_entry_id ;
   do ret_value <- make_ret_type no_running_entry late running_entry_id ;
   ret ret_value.
-
+*)
 
 Definition decomposed_update_entries :=
   do tuple <- read_inputs;
@@ -149,33 +159,110 @@ Qed.
 
 
 Lemma functional_read_inputs_refines_monadic :  forall r s0 s,
-   read_inputs E s0 = (r,s) ->  functional_read_inputs s0 = (r,s).
-Admitted.
+    read_inputs E s0 = (r,s) ->  functional_read_inputs s0 = (r,s).
+Proof.
+intros r s0 s Hr.
+unfold read_inputs, bind,ret in Hr.
+unfold functional_read_inputs.
+remember (jobs_arriving N E s0) as rs ; destruct rs as (l,s').
+remember (job_terminating E s') as rs ; destruct rs as (b,s'').
+remember (job_expired E s'') as rs ; destruct rs as (b',s''').
+remember (job_late E s''') as rs ; destruct rs as (b'',s'''').
+rewrite <- Hr ; clear r Hr.
+unfold jobs_arriving , E, CNat in Heqrs.
+rewrite map_map in Heqrs.
+rewrite map_id in Heqrs.
+injection Heqrs ; intros ; subst; clear Heqrs.
+unfold job_terminating in Heqrs0.
+injection Heqrs0 ; intros ; subst; clear Heqrs0.
+unfold job_expired in Heqrs1.
+unfold is_active_list_empty, get_first_active_entry, get_entry_counter,bind,ret in Heqrs1.
+remember (active s0) as as0.
+unfold job_late in Heqrs2.
+  unfold is_active_list_empty, get_first_active_entry, get_entry_delete,eqb,bind,ret in *.
+repeat f_equal ; auto.
+
+*    destruct as0.
+   +
+    injection Heqrs1 ; intros ; auto.
+   + cbn in *.
+      rewrite <- Heqas0 in Heqrs1.
+      injection Heqrs1; intros ; subst ; auto.
+* 
+   destruct as0.
+   + injection Heqrs1 ; intros ; subst.
+     cbn in *.
+     rewrite <- Heqas0 in Heqrs2.
+     injection Heqrs2 ; intros ; subst; auto.   
+   +  
+     cbn in *.
+      rewrite <- Heqas0 in *.     
+      injection Heqrs1; intros ; subst.
+      repeat rewrite <- Heqas0 in *.
+      cbn in *.
+      injection Heqrs2; intros ; subst; auto.
+ * destruct as0.
+   +
+    injection Heqrs1 ; intros ; subst.
+   
+      rewrite <- Heqas0 in Heqrs2.
+      injection Heqrs2; intros ; subst ; auto.
+   +
+     rewrite <- Heqas0 in *.     
+      injection Heqrs1; intros ; subst.
+      repeat rewrite <- Heqas0 in *.
+      cbn in *.
+      injection Heqrs2; intros ; subst; auto.
+Qed.
+
 
 
 Lemma functional_update_first_entry_refines_monadic :  forall b b' r s0 s,
     update_first_entry b b' E s0 = (r,s) ->
     functional_update_first_entry s0 b b'  = (r,s).
-Admitted.
-
+Proof.  
+intros b b' r s0 s Hu.
+unfold update_first_entry in Hu.  
+unfold functional_update_first_entry.
+destruct r.
+f_equal ; auto.
+unfold not, and, remove_first_active_entry, bind, ret in Hu.
+case_eq (b && negb b') ; intros Hcas ; rewrite Hcas in *  ;
+injection Hu ; intros ; subst ; auto.
+destruct s.
+f_equal ; auto.
+Qed.
 
 Lemma functional_add_new_entries_refines_monadic :  forall l r s0 s,
     add_new_entries l E s0 = (r,s) ->
     functional_add_new_entries s0 l  = (r,s).
+Proof.  
 Admitted.
 
 
 Lemma functional_write_output_refines_monadic :  forall b'' r s0 s,
     write_output b'' E s0 = (r,s) ->
     functional_write_output s0 b''  = (r,s).
-Admitted.
-
+Proof.
+intros b'' r s0 s Hw.
+unfold functional_write_output.  
+unfold write_output, is_active_list_empty,make_ret_type,get_running ,get_first_active_entry, bind,ret  in Hw.
+remember (active s0) as as0.
+destruct as0.
+* injection Hw ; intros ; subst.
+  repeat (apply f_equal).
+  destruct s ; f_equal ; auto.
+*  rewrite <- Heqas0 in Hw.
+   cbn in Hw.
+   injection Hw ; intros ; subst.
+  repeat (apply f_equal).
+  destruct s ; f_equal ; auto.
+Qed.
 
 Lemma functional_update_entries_refines_monadic :  forall r s0 s,
    update_entries E s0 = (r,s) ->  functional_update_entries s0 = (r,s).
 Proof.
-  intros r s0 s Hu.
-  
+intros r s0 s Hu.  
 rewrite decomposition_correct in Hu.
 rewrite functional_decomposition_correct.
 unfold  decomposed_update_entries, bind, ret in Hu.
