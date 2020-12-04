@@ -81,19 +81,19 @@ Definition create_entry_from_job_id (job_id : CNat) : RT Entry :=
   make_entry job_id job_budget entry_del.
 
 (* primitive that inserts a list of entries according to its deadline *)
-Fixpoint insert_new_entries_aux timeout (new_jobs : JobSet) (new_jobs_size : CNat) : RT unit :=
+Fixpoint insert_new_entries_aux timeout (new_jobs : JobSet) : RT unit :=
   match timeout with
   | 0 => ret tt
   | S(timeout1) =>
-      do no_more_jobs <- CNat.eqb new_jobs_size zero ;
+      do no_more_jobs <- is_empty_list new_jobs;
       if no_more_jobs then
         ret tt
       else
-      do new_jobs_size_dec <- pred new_jobs_size ;
-      do new_job_id <- get_job_id new_jobs new_jobs_size_dec ;
-      do new_entry <- create_entry_from_job_id new_job_id ;
-      insert_new_active_entry new_entry cmp_entry_deadline ;;
-      insert_new_entries_aux timeout1 new_jobs new_jobs_size_dec
+      do new_job_id <- get_first_job_id new_jobs ;
+      do new_entry <- create_entry_from_job_id new_job_id;
+      insert_new_active_entry new_entry cmp_entry_deadline;;
+      do remaining_jobs <- get_remaining_jobs new_jobs ;
+      insert_new_entries_aux timeout1 remaining_jobs
   end.
   (*
   fun _ s => (tt, {|
@@ -105,8 +105,8 @@ Fixpoint insert_new_entries_aux timeout (new_jobs : JobSet) (new_jobs_size : CNa
     |}).
   *)
 
-Definition insert_new_entries (new_jobs : JobSet) (new_jobs_size : CNat) : RT unit :=
-  insert_new_entries_aux N new_jobs new_jobs_size.
+Definition insert_new_entries (new_jobs : JobSet) : RT unit :=
+  insert_new_entries_aux N new_jobs.
 
 Definition get_running : RT CNat :=
   do first_active_entry <- get_first_active_entry ;
@@ -126,8 +126,7 @@ Definition update_entries : RT CRet :=
     ret tt)
   ;;
 
-  do new_jobs_length <- get_length new_jobs ;
-  insert_new_entries new_jobs new_jobs_length ;;
+  insert_new_entries new_jobs ;;
 
   (*insert_entries (* insert new entries generated from the new incoming jobs in the active list *)
     (map 

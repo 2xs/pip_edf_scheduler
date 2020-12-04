@@ -31,8 +31,17 @@ From Scheduler.SchedulerMockup Require Import CNat.
 Require Import List.
 
 (* get the id of the nth job from the jobs arriving *)
-Definition get_job_id (job_set : JobSet) (n : CNat) : RT CNat :=
-  ret (nth n job_set default_nat).
+Definition is_empty_list (job_set : JobSet) : RT CBool :=
+  ret match job_set with
+      | nil => true
+      | _   => false
+      end.
 
-Definition get_length (job_set : JobSet) : RT CNat :=
-  ret (length job_set).
+Definition get_first_job_id (job_set : JobSet) : RT CNat :=
+  ret match job_set with
+      | nil => zero
+      | head::tail => head
+      end.
+
+Definition get_remaining_jobs (job_set : JobSet) : RT JobSet :=
+  ret (tail job_set).
