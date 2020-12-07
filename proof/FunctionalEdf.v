@@ -39,7 +39,7 @@ let b'' :=  match hd_error s.(active) with
 in             
 let active1 := if b && (negb b') then tl s.(active) else s.(active) in
 let active2 :=
-       insert_all _
+       insert_all Entry
          (fun e1 e2 : Entry =>
           deadline (Jobs (id e1)) <=? deadline (Jobs (id e2)))
          (map
@@ -90,9 +90,6 @@ Definition functional_scheduler  (s: State)  :=
   (r,s'').                                       
   
 
-
-Definition drop_snd{A B C : Type}(t : A * B * C) : A * C :=
-  match t with (a, b, c) => (a,c) end.
   
 
 Fixpoint running (t : nat) : (option nat * State) :=
@@ -1702,6 +1699,111 @@ apply  EdfPolicyMainTheorem; auto.
 eapply  functional_scheduler_implements_policy; eauto.
 Qed.
 
-   
- End FunctionalEdfIsCorrectMod.
+Lemma ids_after_update_counters : forall s r s' e',
+  functional_update_counters s = (r,s') ->
+  In e' (active s') -> exists e,  In e (active s) /\ id e = id e'.
+Proof.
+intros s r s' e' Hfss Hin.
+unfold functional_update_counters in Hfss.
+injection Hfss ; intros ; subst ; clear Hfss.
+cbn in Hin.
+remember (active s) as as0.
+destruct as0.
+* inversion Hin.
+* cbn in Hin.
+  rewrite in_map_iff in Hin.
+  destruct Hin as (e'' & Heq & Hin).
+  apply f_equal with (f := id) in Heq.
+  cbn in Heq.
+  destruct (Init.Nat.pred (cnt e)).
+  + rewrite Nat.eqb_refl in Hin.
+      exists e'' ; cbn ; split ; auto.
+  + 
+    assert( Hn : S n <> 0) ; auto.
+    rewrite <- Nat.eqb_neq in Hn.    
+    rewrite Hn in Hin; clear Hn.
+    inversion Hin ; subst.
+    - cbn in Heq.  
+      exists e ; cbn ; split ; auto.    
+    -  exists  e'' ; cbn ; split ; auto.    
+Qed.
+
+Lemma fss_in_active_id_lt_N : forall t  s,
+  snd (functional_scheduler_star t) = s  -> 
+  forall e, In e (active s) -> id e < N.
+Proof.
+ intros t s Hs e Hin.
+ destruct t.
+ *
+   cbn in Hs.
+   rewrite <- Hs in Hin.
+   inversion Hin.
+* rewrite snd_drop_snd in Hs.
+  rewrite  fss_running in Hs.
+  remember (running t) as rs ; destruct rs as (r,s').
+  remember (functional_update_counters s') as rs ; destruct rs as (r',s'').
+  cbn in * ; subst.
+  symmetry in Heqrs, Heqrs0.
+  destruct (ids_after_update_counters _ _ _ _ Heqrs0 Hin) as (e' & Hin' & Heq).
+  rewrite <- Heq.
+  eapply in_active_id_lt_N ; eauto.
+Qed.
+
+Lemma update_counters_effect_on_active : forall s s' r', 
+functional_update_counters s = (r',s') ->
+map id (active s') = map id (active s) \/
+map id (active s') = tl (map id (active s)).
+Proof.
+intros s s' r' Hfss.
+unfold functional_update_counters in Hfss.
+apply f_equal  with (f := snd) in Hfss ; cbn in Hfss.
+remember (active s) as acts.
+destruct acts.
+* destruct s' ; cbn in *.
+   injection Hfss  ; intros ; subst.
+   right ; auto.
+* destruct s' ; cbn in *.
+   destruct (Init.Nat.pred (cnt e)).
+  + rewrite Nat.eqb_refl in Hfss.
+    injection Hfss  ; intros ; subst.
+    rewrite map_map.
+    right.
+    reflexivity.
+ +   
+    assert( Hn : S n <> 0) ; auto.
+    rewrite <- Nat.eqb_neq in Hn.    
+    rewrite Hn in Hfss; clear Hn.
+    cbn in Hfss.
+    injection Hfss  ; intros ; subst.
+    left; cbn.
+    rewrite map_map.
+    reflexivity.
+Qed.
+  
+Lemma fss_active_unique_for_id : forall t  s,
+  snd (functional_scheduler_star t) = s  -> unique_for id (active s).
+Proof.
+intros t s Hs.  
+destruct t.
+* cbn in Hs.
+  rewrite <- Hs.
+  unfold unique_for.
+  cbn.
+  apply NoDup_nil.
+*  rewrite snd_drop_snd in Hs.
+  rewrite  fss_running in Hs.
+  remember (running t) as rs ; destruct rs as (r,s').
+  remember (functional_update_counters s') as rs ; destruct rs as (r',s'').
+  cbn in Hs  ;  subst.
+  symmetry in Heqrs, Heqrs0.
+  unfold unique_for.
+  destruct (update_counters_effect_on_active _ _ _ Heqrs0) as [Ha | Ha].
+  + rewrite Ha.
+      eapply active_unique_for_id ; eauto.
+  + rewrite Ha.
+      apply NoDup_tl.
+      eapply active_unique_for_id ; eauto.
+ Qed.
+     
+End FunctionalEdfIsCorrectMod.
 

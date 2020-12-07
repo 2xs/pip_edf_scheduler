@@ -224,7 +224,7 @@ Proof.
 intros  s0 env s (Henv & Hs).
 rewrite Hs,Henv; clear Hs Henv.
 case_eq (scheduler E s0) ; intros r s' Hs.
-rewrite <- functional_edf_refines_monadic with (s0 := s0)  ; auto.
+rewrite <- edf_refinement with (s0 := s0)  ; auto.
 Qed.
 
 Fixpoint scheduler_star (n : nat)  :=
