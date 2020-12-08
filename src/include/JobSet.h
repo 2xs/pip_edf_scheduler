@@ -5,7 +5,8 @@
 
 typedef int coq_JobSet;
 
-coq_CNat JobSet_get_job_id(coq_JobSet job_set, coq_CNat n);
-coq_CNat JobSet_get_length(coq_JobSet job_set);
+coq_CBool JobSet_is_empty_list(coq_JobSet job_set);
+coq_CNat  JobSet_get_first_job_id(coq_JobSet job_set);
+coq_CNat  JobSet_get_remaining_jobs(coq_JobSet job_set);
 
 #endif

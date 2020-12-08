@@ -18,6 +18,10 @@ static inline void State_set_time_counter(coq_CNat time_counter){
 	clock = time_counter;	
 };
 
+static inline coq_CBool State_is_active_list_empty() {
+	return (first_active_entry == -1);
+}
+
 static inline coq_Entry State_get_first_active_entry() {
 	if (first_active_entry == -1) return default_entry;
 	return &(JOBS_ARRAY[first_active_entry].entry);

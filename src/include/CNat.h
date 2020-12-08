@@ -7,10 +7,10 @@
 typedef unsigned coq_CNat;
 
 #define CNat_zero 0u
-#define default_nat CNat_zero
+#define CNat_default_nat CNat_zero
 
 static inline coq_CBool CNat_is_default_nat(coq_CNat n) {
-	return n == default_nat;
+	return n == CNat_default_nat;
 }
 
 // I wanna die, Coq nats do not underflow (obviously).
