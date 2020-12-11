@@ -3,13 +3,11 @@
 
 #include "CBool.h"
 #include "CNat.h"
-#include "Jobs.h"
+#include "mem_repr.h"
 
-typedef struct embedded_coq_Entry_s coq_Entry_t;
+typedef struct __internal_entry__ *coq_Entry;
 
-typedef coq_Entry_t *coq_Entry;
-
-#define default_entry (&(JOBS_ARRAY[0].entry))
+#define default_entry (&(INTERNAL_ARRAY[0].entry))
 static inline coq_CBool Entry_is_default_entry(coq_Entry entry) {
 	return entry == default_entry;	
 };
@@ -41,7 +39,7 @@ static inline coq_CBool Entry_cmp_entry_deadline(coq_Entry entry1, coq_Entry ent
 };
 
 static inline coq_Entry Entry_make_entry(coq_CNat id, coq_CNat cnt, coq_CNat del) {
-	coq_Entry entry = &(JOBS_ARRAY[id].entry);
+	coq_Entry entry = &(INTERNAL_ARRAY[id].entry);
 	entry->id = id;
 	entry->cnt = cnt;
 	entry->del = del;

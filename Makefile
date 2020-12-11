@@ -34,10 +34,13 @@ EDF.c: $(JSONS)
 		  -d JobSet:JobSet.json -q JobSet.h\
 		  -o EDF.c EDF.json
 
-Jobs.o: src/c/Jobs.c $(INCLUDES)/Jobs.h
+EDF.o: EDF.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-EDF.o: EDF.c $(INCLUDES)/Jobs.h $(INCLUDES)/Entry.h
+mem_repr.o: src/interface_implementation/mem_repr.c $(INCLUDES)/mem_repr.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+State.o: src/interface_implementation/State.c $(INCLUDES)/State.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 _CoqProject: ;
