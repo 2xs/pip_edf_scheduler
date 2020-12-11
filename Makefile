@@ -1,7 +1,7 @@
 DIGGER=tools/digger/digger
 JSONS=EDF.json CNat.json CBool.json CRet.json State.json Primitives.json Jobs.json Entry.json JobSet.json
 
-INCLUDES=src/include
+INCLUDES=src/interface_implementation/include
 
 CFLAGS+=-Wall -Wextra -I $(INCLUDES)
 
