@@ -16,6 +16,7 @@ clean: Makefile.coq
 	rm -f EDF.c
 	rm -f *.o
 	rm -f $(JSONS)
+	rm -f partition
 
 Makefile.coq: _CoqProject
 	$(COQBIN)coq_makefile -f _CoqProject -o Makefile.coq src/coq/*/*.v src/coq/*/*/*.v proof/*.v
@@ -42,6 +43,12 @@ mem_repr.o: src/interface_implementation/mem_repr.c $(INCLUDES)/mem_repr.h
 
 State.o: src/interface_implementation/State.c $(INCLUDES)/State.h
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+partition.o: src/partition/main.c $(INCLUDES)/State.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+partition: partition.o mem_repr.o State.o EDF.o
+	$(CC) $(CFLAGS) -o $@ $^
 
 _CoqProject: ;
 

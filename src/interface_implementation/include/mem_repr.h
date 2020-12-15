@@ -27,8 +27,9 @@ typedef struct __internal_s__ {
 
 extern internal_t INTERNAL_ARRAY[];
 extern coq_CBool  JOB_DONE;
-extern unsigned int clock;
-extern int first_active_entry_index;
+extern int JOBS_ARRIVING_HEAD_INDEX;
+extern unsigned int CLOCK;
+extern int ACTIVE_ENTRIES_HEAD_INDEX;
 
 // FIXME
 // Maximal id of a Job
@@ -38,12 +39,12 @@ extern int first_active_entry_index;
  *     - entry.id and job.job_id should be equal to index in SCHEDULE_PLAN array
  */
 #define SCHEDULE_PLAN {                        \
-	{ {0,  0, 0, 0, 0}, {0, 0 ,0}, -1, -1},\
-	{ {1, 20, 0, 0, 0}, {0, 0 ,0}, -1, -1},\
-	{ {2, 30, 0, 0, 0}, {0, 0 ,0},  3, -1},\
-	{ {3, 30, 0, 0, 0}, {0, 0 ,0}, -1, -1},\
-	{ {4, 50, 0, 0, 0}, {0, 0 ,0}, -1, -1} \
+	{ {0,  0,  0,  0,  0}, {0, 0 ,0}, -1, -1},\
+	{ {1,  0,  9, 10, 10}, {0, 0 ,0}, -1, -1},\
+	{ {2, 10,  9, 10, 20}, {0, 0 ,0}, -1, -1},\
+	{ {3, 10,  9, 10, 30}, {0, 0 ,0}, -1, -1},\
+	{ {4, 30,  9, 10, 40}, {0, 0 ,0}, -1, -1} \
 }
-#define HYPER_PERIOD 20000
+#define HYPER_PERIOD 40
 
 #endif
