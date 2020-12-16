@@ -14,6 +14,7 @@ void State_insert_new_active_entry(coq_Entry entry, entry_cmp_func_type entry_co
 			if (cmp_result) {
 				INTERNAL_ARRAY[entry->id].active_next_entry_index = current_entry_index;
 				*previous_entry_index_ptr = entry->id;
+				break;
 			}
 			else {
 				previous_entry_index_ptr = &(INTERNAL_ARRAY[current_entry_index].active_next_entry_index);

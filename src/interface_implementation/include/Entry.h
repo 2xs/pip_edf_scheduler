@@ -35,7 +35,7 @@ static inline coq_Entry Entry_decrease_cnt(coq_Entry entry) {
 };
 
 static inline coq_CBool Entry_cmp_entry_deadline(coq_Entry entry1, coq_Entry entry2) {
-	return entry1->del < entry2->del;
+	return entry1->del <= entry2->del;
 };
 
 static inline coq_Entry Entry_make_entry(coq_CNat id, coq_CNat cnt, coq_CNat del) {
