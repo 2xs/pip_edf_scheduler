@@ -14,7 +14,6 @@ From Scheduler Require  Import EDF.
 Module FunctionalEdfWithFuelMod(J : JobsAxiomsMod).
 Import J.
 
-  
 Module F:= FunctionalEdfImplementsAssumptionsMod J.
 Import F.
 
@@ -28,11 +27,10 @@ Fixpoint functional_insert_new_entries_fuel(timeout : nat) (new_jobs : list nat)
     match new_jobs with
       [] => active
     |  new_job_id :: remaining_jobs =>
-      
       let new_entry :=  mk_Entry
             new_job_id
             (budget (Jobs new_job_id))
-            (S (deadline (Jobs new_job_id) - (arrival (Jobs new_job_id)))) in
+            ((deadline (Jobs new_job_id) - (arrival (Jobs new_job_id)))) in
       let active1 := insert _
          (fun e1 e2 : Entry =>
             deadline (Jobs (id e1)) <=? deadline (Jobs (id e2)))
@@ -53,7 +51,7 @@ Lemma functional_insert_new_entries_enough_fuel :
              {|
              id :=  j;
              cnt := budget (Jobs j);
-             del := S (deadline (Jobs j) - (arrival (Jobs j))) |}) l)
+             del := (deadline (Jobs j) - (arrival (Jobs j))) |}) l)
             l'.
 Proof.
 induction l ; intros n l' Hlen.
@@ -81,20 +79,14 @@ let b' :=  match hd_error s.(active) with
          cnt e =? 0
      | None => false
            end
-in
-let b'' :=  match hd_error s.(active) with
-     | Some e =>
-         del e =? 0
-     | None => false
-           end
 in             
 let active1 := if b && (negb b') then tl s.(active) else s.(active) in
 let active2 :=
        functional_insert_new_entries_fuel N  l  active1  in
 
 ( match active2 with
-     | [] => (None,b'')
-     | e :: _ => (Some (id e), b'')
+     | [] => (None,false)
+     | e :: _ => (Some (id e), del e =? 0)
   end,  mk_State  s.(now) active2).
 
 
@@ -184,8 +176,7 @@ Definition read_inputs  :=
   do new_jobs <- jobs_arriving N ; (* get all jobs arriving at current time, having id < N *)
   do finished <- job_terminating;  (* does a job finish at current time ? *)
   do expired <- job_expired;       (* is the job expired ? *)
-  do late <- job_late ;            (* did the job exceed its deadline ?*)
-  ret (new_jobs, finished,expired,late).
+  ret (new_jobs, finished,expired).
 
 Definition update_first_entry (finished expired : CBool) :=
   do not_expired <- not expired;
@@ -197,8 +188,9 @@ Definition update_first_entry (finished expired : CBool) :=
 
 
 
-Definition write_output (late : CBool) :=
+Definition write_output :=
   do no_active_entry <- is_active_list_empty;
+  do late <- job_late ;            (* did the current job exceed its deadline ?*)
   (if no_active_entry then
     do ret_value <- make_ret_type false late default_nat ;
     ret ret_value
@@ -207,19 +199,14 @@ Definition write_output (late : CBool) :=
     do ret_value <- make_ret_type true late running_entry_id ;
     ret ret_value
   ).
-(*
-  do running_entry_id <- get_running ; (* obtain id of the running job (possibly none) from head of active list*)
-  do no_running_entry <- is_default_nat running_entry_id ;
-  do ret_value <- make_ret_type no_running_entry late running_entry_id ;
-  ret ret_value.
-*)
+
 
 Definition decomposed_update_entries :=
   do tuple <- read_inputs;
-  match tuple with (new_jobs, finished,expired,late) =>
+  match tuple with (new_jobs, finished,expired) =>
     update_first_entry finished expired ;;
     insert_new_entries new_jobs ;;
-    write_output late
+    write_output
   end.
  
 
@@ -234,9 +221,6 @@ Proof.
  f_equal.
  extensionality finished.
  rewrite bind_bind.
- f_equal.
- extensionality expired.
-  rewrite bind_bind.
  f_equal.
 Qed.
 
@@ -255,15 +239,9 @@ let b' :=  match hd_error s.(active) with
      | Some e =>
          cnt e =? 0
      | None => false
-           end
+    end
 in
-let b'' :=  match hd_error s.(active) with
-     | Some e =>
-         del e =? 0
-     | None => false
-           end
-in
-( (l,b,b',b''), s).
+( (l,b,b'), s).
 
 Definition functional_update_first_entry (s : State) (b b' : bool) :=
   let active1 := if b && (negb b') then tl s.(active) else s.(active) in
@@ -278,18 +256,18 @@ Definition functional_add_new_entries_fuel(s:State) (l : list nat) :=
 
 
 
-Definition functional_write_output (s : State) (b'' : bool) :=
+Definition functional_write_output (s : State) :=
    (match s.(active) with
-     | [] => (None,b'')
-     | e :: _ => (Some (id e), b'')
+     | [] => (None, false)
+     | e :: _ => (Some (id e), del e =? 0)
   end,  mk_State  s.(now) s.(active)).
 
 Definition functional_decomposed_update_entries(s : State) :=
   let (tuple,s') :=  functional_read_inputs s in
-  match tuple with (l, b,b',b'') =>
+  match tuple with (l, b,b') =>
     let (_,s'') := functional_update_first_entry  s' b b' in
     let (_,s''') := functional_add_new_entries_fuel s'' l in
-    functional_write_output s''' b'' 
+    functional_write_output s'''
   end.
 
 
@@ -344,18 +322,6 @@ repeat f_equal ; auto.
       repeat rewrite <- Heqas0 in *.
       cbn in *.
       injection Heqrs2; intros ; subst; auto.
- * destruct as0.
-   +
-    injection Heqrs1 ; intros ; subst.
-   
-      rewrite <- Heqas0 in Heqrs2.
-      injection Heqrs2; intros ; subst ; auto.
-   +
-     rewrite <- Heqas0 in *.     
-      injection Heqrs1; intros ; subst.
-      repeat rewrite <- Heqas0 in *.
-      cbn in *.
-      injection Heqrs2; intros ; subst; auto.
 Qed.
 
 
@@ -398,7 +364,7 @@ Proof.
                        {|
                        id := c1;
                        cnt := budget (Jobs c1);
-                       del := S
+                       del := 
                                 (deadline (Jobs c1) -
                                  arrival (Jobs c1)) |}
                        (active s0)
@@ -450,7 +416,7 @@ Proof.
                        {|
                        id := c1;
                        cnt := budget (Jobs c1);
-                       del := S
+                       del := 
                                 (deadline (Jobs c1) -
                                  arrival (Jobs c1)) |}
                        (active s0)
@@ -483,20 +449,24 @@ f_equal.
 Qed.
 
 
-Lemma write_output_refinement :  forall b'' r s0 s,
-    write_output b'' E s0 = (r,s) ->
-    functional_write_output s0 b''  = (r,s).
+Lemma write_output_refinement :  forall r s0 s,
+    write_output E s0 = (r,s) ->
+    functional_write_output s0   = (r,s).
 Proof.
-intros b'' r s0 s Hw.
+intros  r s0 s Hw.
 unfold functional_write_output.  
-unfold write_output, is_active_list_empty,make_ret_type,get_running ,get_first_active_entry, bind,ret  in Hw.
+unfold write_output, is_active_list_empty,make_ret_type,get_running ,get_first_active_entry, job_late, is_active_list_empty, get_first_active_entry, eqb,get_entry_delete,get_entry_id,bind,ret  in Hw.
 remember (active s0) as as0.
 destruct as0.
-* injection Hw ; intros ; subst.
+
+* rewrite <- Heqas0 in Hw.
+  injection Hw ; intros ; subst.
   repeat (apply f_equal).
   destruct s ; f_equal ; auto.
-*  rewrite <- Heqas0 in Hw.
-   cbn in Hw.
+*   
+  repeat rewrite <- Heqas0 in Hw.
+  cbn in Hw.
+  repeat rewrite <- Heqas0 in Hw.
    injection Hw ; intros ; subst.
   repeat (apply f_equal).
   destruct s ; f_equal ; auto.
@@ -522,7 +492,7 @@ rewrite <- read_inputs_refinement with (s0 := s0) in Heqri ; auto.
 assert (Heq  : (r,s) = (r',s') ) ; [congruence | ].
 injection Heq ; intros ; subst.
 clear s0 Heq Heqri Heqri_cp Heqfri.
-destruct r' as (((l & b) & b') & b'').
+destruct r' as ((l & b) & b').
 remember (functional_update_first_entry s' b b') as fri.
 destruct fri as (r,s).
 remember (update_first_entry b b' E s') as ri.
@@ -546,7 +516,7 @@ injection Heq ; intros ; subst.
 clear  Heq Heqri Heqri_cp Heqfri r' s'' b b' l.
 
 
-remember (write_output b'' E s') as ri.
+remember (write_output E s') as ri.
 destruct ri as (r'',s'').
 erewrite write_output_refinement; eauto.
 Qed.

@@ -49,12 +49,7 @@ Definition job_expired : RT bool :=
   do first_active_entry <- get_first_active_entry ;
   do first_active_entry_counter <- get_entry_counter first_active_entry ;
   CNat.eqb first_active_entry_counter zero.
-(*
-  fun _ s => ((match head s.(active) with
-         None => false
-       | Some e =>
-           Nat.eqb e.(cnt)  0
-         end), s).*)
+
 
 (* function that checks if the current job is late *)
 Definition job_late : RT bool :=
@@ -65,11 +60,7 @@ Definition job_late : RT bool :=
   do first_active_entry <- get_first_active_entry ;
   do first_active_entry_delete <- get_entry_delete first_active_entry ;
   CNat.eqb first_active_entry_delete zero.
-(*fun _ s => ((match head s.(active) with
-         None => false
-       | Some e =>
-          Nat.eqb  e.(del)  0
-         end), s).*)
+
 
 Definition create_entry_from_job_id (job_id : CNat) : RT Entry :=
   do job <- get_job_from_job_id job_id ;
@@ -77,8 +68,7 @@ Definition create_entry_from_job_id (job_id : CNat) : RT Entry :=
   do job_deadline <- get_deadline job ;
   do job_arrival <- get_arrival job ;
   do diff_deadline_arrival <- sub job_deadline job_arrival ;
-  do entry_del <- succ diff_deadline_arrival ;
-  make_entry job_id job_budget entry_del.
+  make_entry job_id job_budget  diff_deadline_arrival.
 
 (* primitive that inserts a list of entries according to its deadline *)
 Fixpoint insert_new_entries_aux timeout (new_jobs : JobSet) : RT unit :=
@@ -95,15 +85,7 @@ Fixpoint insert_new_entries_aux timeout (new_jobs : JobSet) : RT unit :=
       do remaining_jobs <- get_remaining_jobs new_jobs ;
       insert_new_entries_aux timeout1 remaining_jobs
   end.
-  (*
-  fun _ s => (tt, {|
-    now := s.(now);
-    active := insert_all _ (fun e1 e2 =>
-                            (Jobs(e1.(id))).(deadline) <=?
-                            (Jobs(e2.(id))).(deadline))
-                            l s.(active)
-    |}).
-  *)
+ 
 
 Definition insert_new_entries (new_jobs : JobSet) : RT unit :=
   insert_new_entries_aux N new_jobs.
@@ -117,7 +99,6 @@ Definition update_entries : RT CRet :=
   do new_jobs <- jobs_arriving N ; (* get all jobs arriving at current time, having id < N *)
   do finished <- job_terminating;  (* does a job finish at current time ? *)
   do expired <- job_expired;       (* is the job expired ? *)
-  do late <- job_late ;            (* did the job exceed its deadline ?*)
   do not_expired <- not expired;
   do finished_and_not_expired <- and finished not_expired ;
   (if finished_and_not_expired then (* i remove its entry (NB the first one) from active list*)
@@ -125,16 +106,9 @@ Definition update_entries : RT CRet :=
   else
     ret tt)
   ;;
-
   insert_new_entries new_jobs ;;
-
-  (*insert_entries (* insert new entries generated from the new incoming jobs in the active list *)
-    (map 
-      (fun job_id => mk_Entry job_id (Jobs job_id).(budget) (S((Jobs job_id).(deadline)-(Jobs job_id).(arrival)))) 
-      new_jobs
-    ) ;;
-  *)
   do no_active_entry <- is_active_list_empty;
+  do late <- job_late ;            (* did the current job exceed its deadline ?*)
   (if no_active_entry then
     do ret_value <- make_ret_type false late default_nat ;
     ret ret_value
@@ -145,20 +119,10 @@ Definition update_entries : RT CRet :=
   ).
   (*  return the job id (if any) that has beed running, and whether or not the job was late   *)
 
-(* Rewrite me, monadic + Clist *)
+
 Definition decrease_cnt_first : RT unit :=
   update_first_active_entry decrease_cnt.
-(*
-  fun _ s =>
-    match s.(active) with
-    | [] => (tt, s)
-    | e :: es =>
-      (tt, {|
-            now := s.(now);
-            active := mk_Entry (id e) (pred (cnt e)) (del e) :: es
-           |})
-    end.
-*)
+
 
 (* primitive that removes the first entry if it exists and has expired *)
 Definition remove_first_if_expired : RT unit :=
@@ -169,28 +133,9 @@ Definition remove_first_if_expired : RT unit :=
     remove_first_active_entry
   else
     ret tt.
-(* fun _ s => match s.(active) with
-| [] => (tt, s)
-| e :: es =>
-    if ( Nat.eqb (cnt e)   0)
-    then (tt, {| now := s.(now); active :=  es |})
-    else (tt,s)
-end.*)
-
-(* Definition decrease_all_del_func(l : list Entry) :=
-  map (fun e => {|
-      id := e.(id);
-      cnt := e.(cnt);
-      del := pred e.(del)
-  |}) l. *)
 
 Definition decrease_all_del : RT unit :=
   update_active_entries decrease_del.
-  (*fun _ s =>
-    (tt, {|
-    now := s.(now);
-    active := decrease_all_del_func s.(active)
-    |}).*)
 
 (* primitive that increases the time counter *)
 Definition inc_time_counter : RT unit :=
