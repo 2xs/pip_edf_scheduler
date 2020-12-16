@@ -178,7 +178,7 @@ Theorem scheduler_error_handling :
 }}
 scheduler_star  n
 {{ 
-fun o  s  => let (r,b) := o in forall i,  b = true -> r = Some i -> overdue i (n-1)
+fun o  s  => let (r,late) := o in forall i,  late = true -> r = Some i -> overdue i (now s -1)
 }}.
 Proof.
   intros t.
@@ -186,6 +186,7 @@ Proof.
   * apply scheduler_star_triple.
   *  cbn.
      intros (r,b) s Hfs i Hb Hr.
-     eapply functional_scheduler_star_overdue; eauto.
+     eapply functional_scheduler_star_overdue in Hfs; eauto.
+     
 Qed.
 End MonadicEdfMod.

@@ -2031,7 +2031,7 @@ Qed.
 
 Lemma functional_scheduler_star_overdue : forall t o b s i,
     functional_scheduler_star  t  =  ( (o, b) ,s) -> b = true -> o = Some i ->
-    overdue i (t -1).
+    overdue i ( now s  -1).
 Proof.  
 intros t o b s i Hfss Hb Ho.
 destruct t.
@@ -2048,7 +2048,8 @@ destruct t.
   generalize Heqrs ; intro Hrun.
   apply running_overdue with (i := i) in Heqrs; auto.
   apply time_counter_now in Hrun.
-  rewrite Hrun in *.
+  apply  update_counters_changes_now in Heqrs0.
+  rewrite Heqrs0,  Hrun in *.
   replace (S t -1) with t ; auto ; lia.
 Qed.
 
