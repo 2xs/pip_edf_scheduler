@@ -158,7 +158,7 @@ forall n,
 }}
 scheduler_star  n
 {{ 
-fun _ s  => forall i, i < N -> ~overdue i (now s) 
+fun _ s  => forall job_id, job_id < N -> ~overdue job_id (now s) 
 }}.
 Proof.
   intros Hf t.
@@ -178,7 +178,7 @@ Theorem scheduler_error_handling :
 }}
 scheduler_star  n
 {{ 
-fun o  s  => let (r,late) := o in forall i,  late = true -> r = Some i -> overdue i (now s -1)
+fun o  s  => let (r,late) := o in forall job_id,  late = true -> r = Some job_id -> overdue job_id (now s -1)
 }}.
 Proof.
   intros t.
@@ -187,6 +187,6 @@ Proof.
   *  cbn.
      intros (r,b) s Hfs i Hb Hr.
      eapply functional_scheduler_star_overdue in Hfs; eauto.
-     
 Qed.
+
 End MonadicEdfMod.
