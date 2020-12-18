@@ -12,6 +12,7 @@ void print_jobs_arriving();
 void print_active_entries();
 
 unsigned int job_counter[coq_N] = { 0 };
+int executing_job_id = -1;
 
 void init_job_counter() {
 	for (unsigned i = 1; i < coq_N ; i++) {
@@ -39,10 +40,12 @@ int main(void) {
 		res = scheduler(coq_N);
 		if (!res.exists) {
 			printf("No job to schedule\n");
+			executing_job_id = -1;
 		} else {
 			printf("EDF elected : %u\n", res.job_id);
 			printf("      Job | arrival : %u, budget : %u, deadline : %u\n", INTERNAL_ARRAY[res.job_id].job.arrival, INTERNAL_ARRAY[res.job_id].job.budget, INTERNAL_ARRAY[res.job_id].job.deadline);
 			printf("    Entry | del : %u, cnt : %u\n", INTERNAL_ARRAY[res.job_id].entry.del, INTERNAL_ARRAY[res.job_id].entry.cnt);
+			executing_job_id = res.job_id;
 		}
 		update_job_counter();
 		update_clock();
@@ -83,7 +86,14 @@ void update_job_counter() {
 		JOB_DONE = 0;
 		return;
 	}
-	JOB_DONE = !(--job_counter[ACTIVE_ENTRIES_HEAD_INDEX]);
+
+	unsigned running_job_counter = --job_counter[executing_job_id];
+	if (running_job_counter == 0) {
+		JOB_DONE = 1;
+		job_counter[executing_job_id] = INTERNAL_ARRAY[executing_job_id].job.duration;
+	} else {
+		JOB_DONE = 0;
+	}
 }
 
 void update_clock() {

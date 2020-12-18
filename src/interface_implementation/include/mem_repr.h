@@ -37,14 +37,15 @@ extern int ACTIVE_ENTRIES_HEAD_INDEX;
 
 /* Implementation requirements :
  *     - entry.id and job.job_id should be equal to index in SCHEDULE_PLAN array
+ *     - job.duration <= job.budget
+ *     - job.arrival + job.budget <= job.deadlilne
  */
 #define SCHEDULE_PLAN {                        \
 	{ {0,  0,  0,  0,  0}, {0, 0 ,0}, -1, -1},\
 	{ {1,  0,  9, 10, 10}, {0, 0 ,0}, -1, -1},\
-	{ {2, 10,  9, 10, 20}, {0, 0 ,0}, -1, -1},\
-	{ {3, 10,  9, 10, 30}, {0, 0 ,0}, -1, -1},\
+	{ {2, 10, 10, 10, 20}, {0, 0 ,0}, -1, -1},\
+	{ {3, 10, 10, 10, 30}, {0, 0 ,0}, -1, -1},\
 	{ {4, 30,  9, 10, 40}, {0, 0 ,0}, -1, -1} \
 }
 #define HYPER_PERIOD 40
-
 #endif
