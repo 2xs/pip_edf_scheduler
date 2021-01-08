@@ -1,4 +1,5 @@
 Require Import List.
+Require Import Classical.
 Import ListNotations.
 Require Import Coq.Bool.Bool.
 Require Import Omega.
@@ -219,7 +220,8 @@ Qed.
 
 Lemma ids_after_update_counters : forall s r s' e',
   functional_update_counters s = (r,s') ->
-  In e' (active s') -> exists e,  In e (active s) /\ id e = id e' /\ del e' = del e - 1.
+  In e' (active s') ->
+   exists e,  In e (active s) /\ id e = id e' /\ del e' = del e - 1.
 Proof.
 intros s r s' e' Hfss Hin.
 unfold functional_update_counters in Hfss.
@@ -312,94 +314,61 @@ Proof.
   rewrite Nat.eqb_eq in * ; subst ; auto.
 Qed.
 
-Lemma running_is_first: forall t n b0 s,
-    running  t = (Some n, b0, s)  ->
+
+Lemma ue_return_is_first: forall s n b s',
+    functional_update_entries s = (Some n, b, s')  ->
+    exists e es,  s'.(active) = e::es  /\ e.(id) = n.
+Proof.
+intros s n b s' He.
+unfold functional_update_entries in He.
+remember (insert_all Entry
+            (fun e1 e2 : Entry =>
+             deadline (Jobs (id e1)) <=?
+             deadline (Jobs (id e2)))
+            (map
+               (fun j : CNat =>
+                {|
+                id := j;
+                cnt := budget (Jobs j);
+                del := deadline (Jobs j) - arrival (Jobs j) |})
+               (filter (fun j : nat => j <? N)
+                  (jobs_arriving_at (now s))))
+            (if
+              match hd_error (active s) with
+              | Some e =>
+                  cnt e <=?
+                  budget (Jobs (id e)) -
+                  duration (Jobs (id e))
+              | None => false
+              end &&
+              negb
+                match hd_error (active s) with
+                | Some e => cnt e =? 0
+                | None => false
+                end
+             then tl (active s)
+             else active s)) as ins.
+destruct ins.
+* inversion He.
+* inversion He ; subst ; clear He.
+  exists e, ins; repeat split; auto.
+Qed.
+
+Lemma running_is_first: forall t n b s,
+    running  t = (Some n, b, s)  ->
     exists e es,  s.(active) = e::es  /\ e.(id) = n.
 Proof.
-  intros  t n b0 s Hrun.
-  destruct t.
-  * rewrite running_0 in Hrun.
-    remember (functional_update_entries init) as rbs.
-    destruct rbs as ((r & b) & s').
-    injection Hrun ; intros Hs Ho ; rewrite <- Hs in *;
-      clear Hs Hrun; cbn.
-     rewrite surjective_pairing in Heqrbs.
-    rewrite pair_equal_spec in Heqrbs.
-    destruct Heqrbs as (Hr & Hs).
-    rewrite Hs in *.
-    cbn in *.    
-  case_eq ( insert_all Entry
-           (fun e1 e2 : Entry =>
-            deadline (Jobs (id e1)) <=? deadline (Jobs (id e2)))
-           (map
-              (fun j : CNat =>
-               {|
-               id := j;
-               cnt := budget (Jobs j);
-               del := (deadline (Jobs j) - arrival (Jobs j)) |})
-              (filter (fun j : nat => j <? N) (jobs_arriving_at 0))) []); intros.
-  + cbn in H. rewrite H in *.
-    injection Hr  ; intros ; subst.
-    discriminate.
-  +  cbn in H.
-     rewrite H in *.
-       injection Hr ; intros Hinj Heq; rewrite Hinj in * ; clear Hr.
-       exists e,l; split ; auto.
-       rewrite H0 in Heq; injection Heq;
-         intros ; auto.
-* rewrite running_S in Hrun.
-  case_eq  (running t); intros o s' Hr.
-  rewrite Hr in Hrun.
-  case_eq (functional_update_counters  s'); intros o'' s'' Hc.
-  rewrite Hc in Hrun.
-   remember (functional_update_entries  s'') as rbs.
-    destruct rbs as ((r & b) & s''').
-    injection Hrun ; intros Hs Ho ; rewrite <- Hs in *;
-      clear Hs Hrun; cbn.
-     rewrite surjective_pairing in Heqrbs.
-    rewrite pair_equal_spec in Heqrbs.
-    destruct Heqrbs as (Hr' & Hs).
-    rewrite Hs in *.
-    cbn in *.
-  (*injection Hrun ; intros Hs Ho; rewrite <- Hs in * ; cbn in *;
-    clear Hs Hrun.*)
-  case_eq (insert_all Entry
-      (fun e1 e2 : Entry =>
-       deadline (Jobs (id e1)) <=? deadline (Jobs (id e2)))
-      (map
-         (fun j : CNat =>
-          {|
-          id := j;
-          cnt := budget (Jobs j);
-          del := (deadline (Jobs j) - arrival (Jobs j)) |})
-         (filter
-            (fun j : nat =>
-             match N with
-             | 0 => false
-             | S m' => j <=? m'
-             end) (jobs_arriving_at (now s''))))
-      (if
-        match hd_error (active s'') with
-        | Some e0 =>
-            cnt e0 <=?
-            budget (Jobs (id e0)) - duration (Jobs (id e0))
-        | None => false
-        end &&
-        negb
-          match hd_error (active s'') with
-          | Some e0 => cnt e0 =? 0
-          | None => false
-          end
-       then tl (active s'')
-       else active s'')) ; intros.
-  + cbn in H.  rewrite H in *.
-    injection Hr' ; intros ; subst.
-    discriminate.
-  + rewrite H in *.
-    exists e,l ; split ; auto.
-    injection Hr' ; intros ; subst.
-    injection H2 ; intros ; subst; auto.
+ intros t n b s Hrun.
+destruct t.
+* rewrite running_0 in Hrun.
+  eapply ue_return_is_first; eauto.
+*  
+  rewrite running_S in Hrun.
+  remember (running t) as rs ; destruct rs as ((o' & b') & s').
+  remember (functional_update_counters s') as rs ; destruct rs as (r & s'').    
+   eapply ue_return_is_first; eauto.
 Qed.
+
 
 Lemma run_after_arrival :
   forall ( i t : nat), i < N ->
@@ -414,10 +383,8 @@ rewrite Nat.eqb_eq in Hrun.
 rewrite <- Hrun in *; clear Hrun.
 destruct ( running_is_first  _ _ _ _ Hrunning) as (e & es & Heqe & Hine).
 rewrite <- Hine in *; clear Hine.
-assert (Hin : In e (active s)).
-{
-  rewrite Heqe ; constructor; auto.
-}
+generalize (in_eq e es) ; intro Hin.
+rewrite <- Heqe in Hin.
 destruct (active_from_earlier_arrivals  _ _ _ Hrunning _ Hin)
   as (t' & Hle' & Hin').
 rewrite filter_In in Hin'.
@@ -440,355 +407,405 @@ Proof.
 Qed.
 
 
+Lemma uc_effect_on_active : forall s s' r', 
+functional_update_counters s = (r',s') ->
+map id (active s') = map id (active s) \/
+map id (active s') = tl (map id (active s)).
+Proof.
+intros s s' r' Hfss.
+unfold functional_update_counters in Hfss.
+apply f_equal  with (f := snd) in Hfss ; cbn in Hfss.
+remember (active s) as acts.
+destruct acts.
+* destruct s' ; cbn in *.
+   injection Hfss  ; intros ; subst.
+   right ; auto.
+* destruct s' ; cbn in *.
+   destruct (Init.Nat.pred (cnt e)).
+  + rewrite Nat.eqb_refl in Hfss.
+    injection Hfss  ; intros ; subst.
+    rewrite map_map.
+    right.
+    reflexivity.
+ +   
+    assert( Hn : S n <> 0) ; auto.
+    rewrite <- Nat.eqb_neq in Hn.    
+    rewrite Hn in Hfss; clear Hn.
+    cbn in Hfss.
+    injection Hfss  ; intros ; subst.
+    left; cbn.
+    rewrite map_map.
+    reflexivity.
+Qed.
 
+Lemma active_id_after_uc_subset  : forall s s' r' e, 
+    functional_update_counters s = (r',s') ->
+    In (id e) (map id (active s')) -> In (id e) (map id (active s)) .
+Proof.
+intros s s' r' e He Hin.  
+apply uc_effect_on_active in He.
+destruct He as [He | He]; rewrite He in Hin ; auto.  
+apply in_tl; auto.
+Qed.
+
+
+Lemma uc_preserves_unique_id : forall s s' r', 
+    functional_update_counters s = (r',s') ->
+    unique_for id (active s) ->
+    unique_for id (active s').
+Proof.
+intros s s' r' Hc Hu.
+unfold unique_for in *.  
+apply uc_effect_on_active in Hc.
+destruct Hc as [Hc | Hc] ; rewrite Hc ; auto. 
+apply NoDup_tl ; auto.
+Qed.
+
+Lemma ue_preserves_unique_id : forall s r s',
+  functional_update_entries s = (r,s') ->
+  unique_for id (active s) ->
+   (forall e,   In (id e)
+                   (filter (fun j => j <? N) (jobs_arriving_at (now s)))
+                -> ~In (id e) (map id (active s)))
+   ->
+      unique_for id (active s').
+Proof.
+  intros s r s' Hue Hu HH.
+  unfold functional_update_entries in Hue.
+  remember  (insert_all Entry
+             (fun e1 e2 : Entry =>
+              deadline (Jobs (id e1)) <=? deadline (Jobs (id e2)))
+             (map
+                (fun j : CNat =>
+                 {|
+                 id := j;
+                 cnt := budget (Jobs j);
+                 del := deadline (Jobs j) - arrival (Jobs j) |})
+                (filter (fun j : nat => j <? N)
+                   (jobs_arriving_at (now s))))
+             (if
+               match hd_error (active s) with
+               | Some e =>
+                   cnt e <=?
+                   budget (Jobs (id e)) - duration (Jobs (id e))
+               | None => false
+               end &&
+               negb
+                 match hd_error (active s) with
+                 | Some e => cnt e =? 0
+                 | None => false
+                 end
+              then tl (active s)
+              else active s)) as ins.
+destruct ins.
+  * inversion Hue ; subst; clear Hue.
+    cbn.
+    apply NoDup_nil.    
+  * 
+    inversion Hue ; subst; clear Hue.
+    cbn.
+    rewrite Heqins; clear Heqins e.
+    eapply insert_all_unique.
+    +  
+      intros e Hin1 Hin2.
+      rewrite map_map in Hin1.
+      cbn in Hin1.
+      rewrite in_map_iff in Hin1.
+      destruct Hin1 as (i & Heqi & Hin1).
+      cbn in HH.
+      rewrite Heqi in * ; clear Heqi.
+      specialize (HH _ Hin1) ; clear Hin1.
+      apply HH.
+      destruct (active s) ; auto.
+      cbn in Hin2.
+      destruct ((cnt e0 <=?
+                 budget (Jobs (id e0)) - duration (Jobs (id e0))) &&
+                negb (cnt e0 =? 0)); auto.
+      apply in_tl; auto.
+    +
+      unfold CNat, unique_for.
+      rewrite map_map, map_id.
+      apply NoDup_filter.
+      rewrite NoDup_nth with (d := 0).
+      intros i j Hi Hj Heq.
+      destruct (jobs_arriving_at_unique _ _ _ _ Hi Hj Heq); auto.
+     +
+      destruct (active s) ; auto.
+      cbn.
+      destruct ((cnt e <=?
+                 budget (Jobs (id e)) - duration (Jobs (id e))) &&
+                negb (cnt e =? 0)); auto.
+       inversion Hu ; subst; auto.                 
+Qed.
+
+Lemma active_unique_for_id :
+  forall t r s,  running t = (r,s) ->  unique_for id (active s).
+Proof.
+induction t ; intros (o,b) s Hrun.  
+* rewrite running_0 in Hrun.
+  eapply ue_preserves_unique_id ; eauto.
+  apply NoDup_nil.
+* 
+  rewrite running_S in Hrun.
+  case_eq  (running  t); intros (o'&b')  s' Hr.
+  rewrite Hr in Hrun.
+  case_eq (functional_update_counters s'); intros o'' s'' Hc.
+  rewrite Hc in Hrun.
+  remember (functional_update_entries  s'') as rbs.
+  rewrite Hrun in * ; clear Hrun.
+  symmetry in Heqrbs.
+  specialize (IHt _ _ Hr).
+  generalize Hc ; intro Hc'.
+  generalize (active_from_earlier_arrivals  _ _ _ Hr) ; intros He. 
+  eapply uc_preserves_unique_id in Hc; eauto.
+  eapply ue_preserves_unique_id in Hc; eauto.
+  intros e Hin Hin'.
+  rewrite in_map_iff in Hin'.
+  destruct Hin' as (e' & Heqid & Hin').
+  apply in_map with (f := id) in Hin'.
+  eapply  active_id_after_uc_subset in Hin' ; eauto.
+  rewrite Heqid in *; clear Heqid e'.
+  rewrite in_map_iff in Hin'.
+  destruct Hin' as (e' & Heqid & Hin').    
+  destruct (He _ Hin') as (t' & Hle & Hin''); clear He.
+  apply time_counter_now in Hr.
+  apply update_counters_changes_now in Hc'.
+  rewrite Hr in Hc'.
+  rewrite Hc' in Hin.
+  rewrite Heqid in *.
+  rewrite filter_In in Hin, Hin''.
+  destruct Hin as (Hin & _).
+  destruct Hin'' as (Hin'' & _).
+  apply In_nth  with (d := 0) in Hin.
+  apply In_nth  with (d := 0) in Hin''.
+  destruct Hin as (i & Hlen & Hnth).
+  destruct Hin'' as (i' & Hlen' & Hnth'').
+  rewrite <- Hnth'' in Hnth.
+  destruct (jobs_arriving_at_unique _ _ _ _ Hlen Hlen' Hnth); lia.
+Qed.
+
+
+
+Lemma ue_preserves_sorted_entries : forall s o b s',
+    functional_update_entries s = ((o,b),s') ->
+     is_sorted _ (fun x y : Entry =>
+                 deadline (Jobs (id x)) <=? deadline (Jobs (id y)))
+               (active s) ->
+      is_sorted _ (fun x y : Entry =>
+                 deadline (Jobs (id x)) <=? deadline (Jobs (id y)))
+                             (active s').
+Proof.
+intros s o b s' Hfss Hsor.
+unfold functional_update_entries in Hfss.
+remember ( insert_all Entry
+              (fun e1 e2 : Entry =>
+               deadline (Jobs (id e1)) <=?
+               deadline (Jobs (id e2)))
+              (map
+                 (fun j : CNat =>
+                  {|
+                  id := j;
+                  cnt := budget (Jobs j);
+                  del := deadline (Jobs j) -
+                         arrival (Jobs j) |})
+                 (filter (fun j : nat => j <? N)
+                    (jobs_arriving_at (now s))))
+              (if
+                match hd_error (active s) with
+                | Some e =>
+                    cnt e <=?
+                    budget (Jobs (id e)) -
+                    duration (Jobs (id e))
+                | None => false
+                end &&
+                negb
+                  match hd_error (active s) with
+                  | Some e => cnt e =? 0
+                  | None => false
+                  end
+               then tl (active s)
+               else active s)) as ins.
+destruct ins.
+*
+  injection Hfss ; intros ; subst ; clear Hfss.
+  constructor.
+*
+  injection Hfss ; intros ; subst ; clear Hfss.
+  cbn.
+  rewrite Heqins.
+  apply insert_all_sorted ; auto.
+ +
+   intros a b; destruct a, b.
+   cbn.
+   case (le_gt_dec (deadline (Jobs id)) (deadline (Jobs id0))) ; intro Hcas.
+   -
+     left.
+     rewrite Nat.leb_le ; auto.
+   -
+     right.
+      rewrite Nat.leb_le ; lia.
+ +
+   remember (active s) as acs.
+   destruct acs.
+   -
+     constructor.
+   -
+     cbn.
+     destruct ((cnt e0 <=?
+       budget (Jobs (id e0)) - duration (Jobs (id e0))) &&
+               negb (cnt e0 =? 0)); auto.
+       eapply is_sorted_tail; eauto.
+Qed.
+
+
+Lemma uc_preserves_sorted_entries : forall s r  s',
+    functional_update_counters s = (r,s') ->
+     is_sorted _ (fun x y : Entry =>
+                 deadline (Jobs (id x)) <=? deadline (Jobs (id y)))
+               (active s) ->
+      is_sorted _ (fun x y : Entry =>
+                 deadline (Jobs (id x)) <=? deadline (Jobs (id y)))
+                             (active s').
+Proof.
+intros s r s' Hc Hsor.
+unfold functional_update_counters in Hc.
+injection Hc ; intros Hr Hs ; subst; clear Hc.
+cbn.
+remember (active s) as acs.
+destruct acs.
+*
+  constructor.
+*
+  apply is_sorted_map.
+  cbn.  
+  destruct ( Init.Nat.pred (cnt e) =? 0).
+  +
+    eapply is_sorted_tail ; eauto.
+  +
+    destruct acs.
+    -
+      apply is_sorted_singleton.
+    -
+      inversion Hsor ; subst.
+      constructor ; auto.
+Qed.
+
+Lemma active_sorted : forall t r s,
+    running  t  =  (r,s) ->
+    is_sorted _ (fun x y : Entry =>
+                 deadline (Jobs (id x)) <=? deadline (Jobs (id y)))
+                             (active s).
+Proof.
+    induction t; intros (o,b) s Hf.
+    *
+      rewrite running_0 in Hf.
+      eapply ue_preserves_sorted_entries in Hf; eauto.
+      constructor.
+    *
+      rewrite running_S in Hf.
+      remember (running t) as rbs.
+      destruct rbs as ((r' & b') & s').
+      remember (functional_update_counters s') as rs.
+      destruct rs as (r'' & s''). 
+      symmetry in Heqrs, Heqrbs.            
+      eapply ue_preserves_sorted_entries ; eauto.
+      eapply uc_preserves_sorted_entries ; eauto.
+Qed.      
+
+(* move to Lib.v *)
+Lemma classic_or : forall A B : Prop,  A \/ B <-> A \/ (~A /\ B).
+Proof.
+ intros ;  tauto.
+Qed.
+
+Lemma new_arrivals_cnt  : forall s o b s',
+    functional_update_entries s = (o,b,s') -> 
+    forall e, In e (active s') -> ~ In e (active s) ->
+    In (id e) (filter (fun j : nat => j <? N) (jobs_arriving_at (now s))) -> 
+    cnt e > budget (Jobs (id e)) - duration (Jobs (id e)).
+Proof.
+intros s o b s' Hfss e Hin Hnotin Hin'.  
+unfold functional_update_entries in Hfss.
+remember ( insert_all Entry
+              (fun e1 e2 : Entry =>
+               deadline (Jobs (id e1)) <=?
+               deadline (Jobs (id e2)))
+              (map
+                 (fun j : CNat =>
+                  {|
+                  id := j;
+                  cnt := budget (Jobs j);
+                  del := deadline (Jobs j) - arrival (Jobs j) |})
+                 (filter (fun j : nat => j <? N)
+                    (jobs_arriving_at (now s))))
+              (if
+                match hd_error (active s) with
+                | Some e =>
+                    cnt e <=?
+                    budget (Jobs (id e)) - duration (Jobs (id e))
+                | None => false
+                end &&
+                negb
+                  match hd_error (active s) with
+                  | Some e => cnt e =? 0
+                  | None => false
+                  end
+               then tl (active s)
+                else active s)) as ins.
+destruct ins ;injection Hfss; intros; subst ; [inversion Hin |].
+clear Hfss.
+cbn [active] in Hin.
+rewrite Heqins in Hin ; clear Heqins.
+rewrite <- insert_all_contents_iff in Hin.
+destruct Hin as [Hin | Hin].
+*
+  rewrite in_map_iff in Hin.
+  destruct Hin as (i & Heq & _).
+  generalize Heq ; intro Heq'.
+  apply f_equal with (f := cnt) in Heq.
+  apply f_equal with (f := id) in Heq'.
+  cbn in Heq, Heq'.
+  rewrite <- Heq', <- Heq in *.
+  generalize (job_duration_gt_0 i), (job_budget_enough i) ;
+        intros;  lia.
+*
+  exfalso.
+  apply Hnotin.
+
+  destruct ( match hd_error (active s) with
+               | Some e =>
+                   cnt e <=? budget (Jobs (id e)) - duration (Jobs (id e))
+               | None => false
+               end &&
+               negb
+                 match hd_error (active s) with
+                 | Some e => cnt e =? 0
+                 | None => false
+                 end); auto.
+  apply in_tl ; auto.
+Qed.
+ 
 Lemma in_active_gt_budget_min_duration : forall  t s r,
     running t = (r,s) ->
     forall e,
       In e (active s) -> cnt e > budget (Jobs (id e)) - duration (Jobs (id e)).
 Proof.
-induction t ; intros s r Hrun e Hin.
-* rewrite running_0 in Hrun.
-  remember (functional_update_entries init) as rbs.
-    destruct rbs as ((r' & b) & s').
-    injection Hrun ; intros Hs Ho ; rewrite <- Hs in *;
-      clear Hs Hrun; cbn.
-     rewrite surjective_pairing in Heqrbs.
-    rewrite pair_equal_spec in Heqrbs.
-    destruct Heqrbs as (Hr & Hs).
-    rewrite Hs in *.
-    cbn in *.    
-  (*injection Hrun ; intros Hs _ ; rewrite <- Hs in *; cbn in *;
-    clear Hs Hrun. *)
-  rewrite <- insert_all_contents_iff in Hin; destruct Hin as
-      [Hin | Hin]; [| inversion Hin].
-  rewrite in_map_iff in Hin.
-  destruct Hin as (i & He & Hin').
-  rewrite <- He ; cbn.
-  generalize (job_duration_gt_0 i), (job_budget_enough i) ; intros;lia.
-* rewrite running_S in Hrun.
-  case_eq (running  t) ; intros o' s' Hr.
-  rewrite Hr in Hrun.
-  case_eq (functional_update_counters s') ; intros o''  s'' Hc.
-  rewrite Hc in Hrun.
-  remember (functional_update_entries  s'') as rbs.
-    destruct rbs as ((r' & b) & s''').
-    injection Hrun ; intros Hs Ho ; rewrite <- Hs in *;
-      clear Hs Hrun; cbn.
-     rewrite surjective_pairing in Heqrbs.
-    rewrite pair_equal_spec in Heqrbs.
-    destruct Heqrbs as (Hr' & Hs).
-    rewrite Hs in *.
-    cbn in *.    
-  (*injection Hrun ; intros Hs _ ; rewrite <- Hs in * ; clear Hs Hrun.
-  cbn in Hin.*)
-   rewrite <- insert_all_contents_iff in Hin; destruct Hin as
-       [Hin | Hin].
-   + rewrite in_map_iff in Hin.
-     destruct Hin as (i & He & Hin').
-      rewrite <- He ; cbn.
-      generalize (job_duration_gt_0 i), (job_budget_enough i) ;
-        intros; lia.
-   + remember (match hd_error (active s'') with
-            | Some e =>
-                cnt e <=?
-                budget (Jobs (id e)) - duration (Jobs (id e))
-            | None => false
-            end &&
-            negb
-              match hd_error (active s'') with
-              | Some e => cnt e =? 0
-              | None => false
-              end) as b'.
-     symmetry in Heqb'.
-     destruct b'.
-   - case_eq (hd_error (active s'')); intros.
-     ** 
-(*rewrite H in Heqb.
-        rewrite andb_true_iff in Heqb.
-        destruct Heqb as (Hineq1 & Heq2).*)
-       clear H Heqb'.        
-        injection Hc ; intros Hsc _ ; rewrite <- Hsc in * ; clear Hc Hsc.
-        cbn in Hin.
-        unfold decrease_all_del_func in Hin.
-       cbn in Hin.
-      remember (active s') as as'.
-      destruct as' ; [inversion Hin | ].
-      cbn in Hin.
-      remember (pred (cnt e1)) as pc1.
-      destruct pc1 ; cbn in Hin.
-       ++ apply in_tl in Hin.
-           rewrite in_map_iff in Hin.
-            destruct Hin as (i & He & Hin').
-            rewrite <- He ; cbn.
-            eapply IHt ; eauto.
-            rewrite <- Heqas'.
-            constructor 2 ; auto.
-      ++  rewrite in_map_iff in Hin.
-            destruct Hin as (i & He & Hin').
-            rewrite <- He ; cbn.
-            eapply IHt ; eauto.
-            rewrite <- Heqas'.
-            constructor 2 ; auto.
-          ** rewrite H in Heqb'; discriminate.
-   - destruct (in_hd_or_tl _ _ Hin).
-     ** rewrite H in Heqb'.
-        rewrite andb_false_iff in Heqb'.
-        destruct Heqb' as [Hcnt1 | Hcnt2].
-       ++ rewrite Nat.leb_gt in Hcnt1; auto.
-       ++ assert (cnt e = 0).
-          {
-            destruct (cnt e) ; auto ; discriminate.
-          }
-          clear Hcnt2.
-          exfalso.
-          injection Hc ; intros Hsc _ ;
-            rewrite <- Hsc in * ; clear Hsc Hc H;
-              cbn in *.
-          unfold decrease_all_del_func in Hin.
-          rewrite in_map_iff in Hin.
-          destruct Hin as (i & He & Hin').
-          rewrite <- He in H0; cbn in H0; clear He.
-          remember (active s') as as'.
-          destruct as' ; [inversion Hin' | ].
-           --  cbn in Hin'.
-                remember (pred (cnt e0)) as pc0.
-                destruct pc0 ; cbn in Hin'.
-                *** assert (Hin : In i (active s')).
-                    {
-                      rewrite <- Heqas' ;
-                      constructor 2; auto.
-                    }
-                    specialize (IHt _  _ Hr _ Hin);
-                      lia.
-                ***
-                  destruct Hin'.
-               +++ rewrite <- H in H0;cbn in H0;
-                     lia.
-               +++   assert (Hin : In i (active s')).
-                    {
-                      rewrite <- Heqas' ;
-                      constructor 2; auto.
-                    }
-                    specialize (IHt _  _ Hr _ Hin);
-                      lia.
-       ** clear Hin; rename H into Hin.
-          clear Heqb'.
-          {
-           injection Hc ; intros Hsc _ ; rewrite <- Hsc in * ; clear Hc Hsc.
-           cbn in Hin.
-           unfold decrease_all_del_func in Hin.
-           cbn in Hin.
-           remember (active s') as as'.
-           destruct as' ; [inversion Hin | ].
-           cbn in Hin.
-           remember (pred (cnt e0)) as pc1.
-           destruct pc1 ; cbn in Hin.
-           ++ apply in_tl in Hin.
-           rewrite in_map_iff in Hin.
-            destruct Hin as (i & He & Hin').
-            rewrite <- He ; cbn.
-            eapply IHt ; eauto.
-            rewrite <- Heqas'.
-            constructor 2 ; auto.
-      ++  rewrite in_map_iff in Hin.
-            destruct Hin as (i & He & Hin').
-            rewrite <- He ; cbn.
-            eapply IHt ; eauto.
-            rewrite <- Heqas'.
-            constructor 2 ; auto.
-      }     
-Qed.
-
-
-Lemma active_unique_for_id :
-  forall t r s,
-  running t = (r,s) ->
-  unique_for id (active s).
-Proof.
-induction t ; intros r s Hrun.  
-* rewrite running_0 in Hrun.
-  remember (functional_update_entries init) as rbs.
-    destruct rbs as ((r' & b) & s').
-    injection Hrun ; intros Hs Ho ; rewrite <- Hs in *;
-      clear Hs Hrun; cbn.
-     rewrite surjective_pairing in Heqrbs.
-    rewrite pair_equal_spec in Heqrbs.
-    destruct Heqrbs as (Hr & Hs).
-    rewrite Hs in *.
-    cbn in *.    
-  (*injection Hrun; intros Hs _ ; rewrite <- Hs ; cbn.*)
-  eapply  insert_all_unique ; eauto.
-  + unfold unique_for.
-    rewrite map_map, map_id.
-    apply NoDup_filter.
-    rewrite NoDup_nth with (d := 0).
-    intros.
-    generalize (jobs_arriving_at_unique _ _ _ _ H H0 H1); intuition.
-  +  apply NoDup_nil.
-* rewrite running_S in Hrun.
-  case_eq  (running  t); intros o s' Hr.
-  rewrite Hr in Hrun.
-  case_eq (functional_update_counters s'); intros o'' s'' Hc.
-  rewrite Hc in Hrun.
-  remember (functional_update_entries  s'') as rbs.
-    destruct rbs as ((r' & b) & s''').
-    injection Hrun ; intros Hs Ho ; rewrite <- Hs in *;
-      clear Hs Hrun; cbn.
-     rewrite surjective_pairing in Heqrbs.
-    rewrite pair_equal_spec in Heqrbs.
-    destruct Heqrbs as (Hr' & Hs).
-    rewrite Hs in *.
-    cbn in *.    
-  (*injection Hrun ; intros Hs Ho; rewrite <- Hs in * ; cbn in *;
-    clear Hs Hrun.*)
-  case_eq ( insert_all Entry
-       (fun e1 e2 : Entry =>
-        deadline (Jobs (id e1)) <=? deadline (Jobs (id e2)))
-       (map
-          (fun j : CNat =>
-           {|
-           id := j;
-           cnt := budget (Jobs j);
-           del :=  (deadline (Jobs j) - arrival (Jobs j)) |})
-          (filter
-             (fun j : nat =>
-              match N with
-              | 0 => false
-              | S m' => j <=? m'
-              end) (jobs_arriving_at (now s''))))
-       (if
-         match hd_error (active s'') with
-         | Some e =>
-             cnt e <=?
-             budget (Jobs (id e)) - duration (Jobs (id e))
-         | None => false
-         end &&
-         negb
-           match hd_error (active s'') with
-           | Some e => cnt e =? 0
-           | None => false
-           end
-        then tl (active s'')
-        else active s'')) ; intros; try apply NoDup_nil.
-    rewrite <- H ; clear H Ho.
-    eapply insert_all_unique; eauto.
-    + rewrite map_map, map_id.
-      intros e' Hin Hin'.
-      rewrite in_map_iff in Hin'.
-      destruct Hin' as (e'' & Heq'' & Hin').
-      rewrite filter_In in Hin.
-      destruct Hin as (Hin & HN).
-      destruct N; try discriminate.
-      erewrite update_counters_changes_now in Hin ; eauto.
-      erewrite time_counter_now in Hin ; eauto.
-      rewrite jobs_arriving_at_prop in Hin.
-      assert (Hin'' : In e'' (active s'')).
-      {
-        destruct ( match hd_error (active s'') with
-             | Some e =>
-                 cnt e <=?
-                 budget (Jobs (id e)) - duration (Jobs (id e))
-             | None => false
-             end &&
-             negb
-               match hd_error (active s'') with
-               | Some e => cnt e =? 0
-               | None => false
-               end) ; intros; auto.
-       apply in_tl ; auto.        
-      }
-    clear Hin'.  
-    injection Hc ; intros Hs' _ ; rewrite <- Hs' in *; clear Hs' Hc.
-    cbn in Hin''.
-    unfold decrease_all_del_func in Hin''.
-    rewrite in_map_iff in Hin''.
-    destruct Hin'' as (e_ & He'' & Hin'').
-    rewrite <- He'' in *; cbn in *; clear He''.
-    rewrite <- Heq'' in *; clear Heq''.
-    remember (active s') as as'.
-    destruct as'; [inversion Hin'' | ].
-    remember (pred (cnt e0)) as pc0.
-    destruct pc0.
-    - cbn in *.
-      assert (Hin' : In e_ (active s')).
-      {
-        rewrite <- Heqas'; constructor 2; auto.
-      }
-      destruct (active_from_earlier_arrivals  _ _ _ Hr _ Hin')
-        as (t' & Ht' & Hin''').
-      rewrite filter_In in Hin'''.      
-      destruct Hin''' as (Hin''' & _).
-      rewrite jobs_arriving_at_prop in Hin'''.
-      lia.
-    -  cbn in Hin''.
-       destruct Hin'' as [Heq | Hin'''].
-       **
-         rewrite <- Heq in *; clear Heq; cbn in *.
-          assert (Hin' : In e0 (active s')).
-          {
-           rewrite <- Heqas'; constructor; auto.
-          }
-                 
-      destruct (active_from_earlier_arrivals  _ _ _ Hr _ Hin')
-        as (t' & Ht' & Hin''').
-      rewrite filter_In in Hin'''.      
-      destruct Hin''' as (Hin''' & _).
-      rewrite jobs_arriving_at_prop in Hin'''.
-      lia.
-      **  cbn in *.
-      assert (Hin' : In e_ (active s')).
-      {
-        rewrite <- Heqas'; constructor 2; auto.
-      }
-      destruct (active_from_earlier_arrivals  _ _ _ Hr _ Hin')
-        as (t' & Ht' & Hin'').
-      rewrite filter_In in Hin''.      
-      destruct Hin'' as (Hin'' & _).
-      rewrite jobs_arriving_at_prop in Hin''.
-      lia.
-   + unfold unique_for.
-     rewrite map_map, map_id.
-     apply NoDup_filter.
-     rewrite NoDup_nth with (d := 0).
-     intros.
-     generalize (jobs_arriving_at_unique _ _ _ _ H H0 H1); intuition.
-   + unfold unique_for in *.
-     assert (Hnod'' : NoDup (map id (active s''))).
-     {
-       injection Hc; intros Hs' _ ; rewrite <- Hs' in *; clear Hs' Hc ; cbn.
-       unfold decrease_all_del_func.
-       rewrite map_map.
-    remember (active s') as as'; cbn.
-    destruct as'.
-    *  apply NoDup_nil.
-    *  cbn.
-    remember (pred (cnt e0)) as pc0.
-    destruct pc0.
-    - cbn in *.
-      specialize (IHt _ _ Hr).
-      rewrite <- Heqas' in IHt.
-      cbn in IHt.
-      rewrite NoDup_cons_iff in IHt; intuition.
-    - cbn.
-      specialize (IHt _ _ Hr).
-      rewrite <- Heqas' in IHt; auto.
-   }   
-
-   destruct ( match hd_error (active s'') with
-         | Some e0 =>
-             cnt e0 <=?
-             budget (Jobs (id e0)) - duration (Jobs (id e0))
-         | None => false
-         end &&
-         negb
-           match hd_error (active s'') with
-           | Some e0 => cnt e0 =? 0
-           | None => false
-           end); intros; auto.
-     destruct (active s'') ; auto.
-     cbn in *.
-     rewrite NoDup_cons_iff in Hnod'' ; intuition.
-Qed.
+ induction t ; intros s (o,b) Hrun e Hin.
+*
+  rewrite running_0 in Hrun.
+  generalize Hrun ; intro Hrun'.
+  eapply  ids_after_update_entries in Hrun ; eauto.
+  destruct Hrun as [Hrun | Hin0] ; [| inversion Hin0].
+  eapply new_arrivals_cnt  ; eauto.
+*
+  rewrite running_S in Hrun.
+  remember (running t) as rbs.
+  destruct rbs as ((o' & b') & s').  
+  remember (functional_update_counters s') as rs.
+  destruct rs as (r & s'').
+  symmetry in Heqrs, Heqrbs.
+  specialize (IHt _ _  (eq_refl _)).
+Admitted.
 
 
 Lemma running_is_first': forall t r  b s e es,
@@ -1467,94 +1484,6 @@ Lemma sum_arrived_some_running : forall  t,
 
 
 
-  
-Lemma active_sorted : forall t r s,
-    running  t  =  (r,s) ->
-    is_sorted _ (fun x y : Entry =>
-                 deadline (Jobs (id x)) <=? deadline (Jobs (id y)))
-                             (active s).
-Proof.
-    induction t; intros r s Hf.
-    * rewrite running_0 in Hf.
-      remember (functional_update_entries init) as rbs.
-      destruct rbs as ((r' & b) & s''').
-      injection Hf ; intros Hs Ho ; rewrite <- Hs in *;
-      clear Hs Hf; cbn.
-      rewrite surjective_pairing in Heqrbs.
-      rewrite pair_equal_spec in Heqrbs.
-      destruct Heqrbs as (Hr' & Hs).
-      rewrite Hs in *.
-      cbn.
-     (* injection Hf; intros ; subst; cbn.*)
-      apply insert_all_sorted.
-        +intros a b' ; destruct a,b'; cbn.
-          do 2 rewrite Nat.leb_le.
-          lia.
-     + constructor.
-    * rewrite running_S in Hf.
-      case_eq (running t) ; intros o s' Hf'.
-      rewrite Hf' in Hf.
-      specialize (IHt _ _ Hf').
-      unfold functional_scheduler in Hf.
-      
-      case_eq (functional_update_counters s') ; intros o' s'' Hc.
-      rewrite Hc in Hf.
-      clear Hf'.
-      assert (Hse'' : is_sorted Entry
-              (fun x y : Entry =>
-                deadline (Jobs (id x)) <=? deadline (Jobs (id y))) 
-              (active s'')).
-      {
-         injection Hc ; intros Hs _ ; rewrite <- Hs ; clear Hs.
-         cbn.
-         unfold decrease_all_del_func.
-          remember (active s') as as'.
-          destruct as'.
-          * constructor.
-          * cbn.
-            remember (pred (cnt e)) as pce.
-            destruct pce.
-            + cbn.
-              apply is_sorted_map; cbn; auto.
-               apply is_sorted_tail with (a :=e); auto.
-            + apply is_sorted_map ; auto.
-              cbn.
-              destruct as'.
-                - constructor.
-                - inversion IHt ; constructor ; auto.
-        }  
-      {
-        clear IHt Hc.
-        remember (functional_update_entries  s'') as rbs.
-        destruct rbs as ((r' & b) & s''').
-        injection Hf ; intros Hs Ho ; rewrite <- Hs in *;
-         clear Hs Hf; cbn.
-         rewrite surjective_pairing in Heqrbs.
-         rewrite pair_equal_spec in Heqrbs.
-         destruct Heqrbs as (Hr' & Hs).
-         rewrite Hs in *.
-       (* injection Hf ; intros Hs _ ; rewrite <- Hs ; clear Hs Hf.*)
-        cbn.
-        apply insert_all_sorted.
-        {
-          intros a b' ; destruct a,b'; cbn.
-          do 2 rewrite Nat.leb_le.
-          lia.
-        }  
-        {
-          remember (active s'') as as''.
-          destruct as''.
-          * constructor.
-          * cbn.
-            case_eq
-              ((cnt e <=?
-                budget (Jobs (id e)) - duration (Jobs (id e))) &&
-                     negb (cnt e =? 0)) ; intros Hcas; auto.
-            eapply is_sorted_tail; eauto.
-        }
-     }   
-Qed.
-
 
 End FunctionalEdfImplementsAssumptionsMod.
 
@@ -1761,36 +1690,6 @@ Proof.
   eapply in_active_id_lt_N ; eauto.
 Qed.
 
-Lemma update_counters_effect_on_active : forall s s' r', 
-functional_update_counters s = (r',s') ->
-map id (active s') = map id (active s) \/
-map id (active s') = tl (map id (active s)).
-Proof.
-intros s s' r' Hfss.
-unfold functional_update_counters in Hfss.
-apply f_equal  with (f := snd) in Hfss ; cbn in Hfss.
-remember (active s) as acts.
-destruct acts.
-* destruct s' ; cbn in *.
-   injection Hfss  ; intros ; subst.
-   right ; auto.
-* destruct s' ; cbn in *.
-   destruct (Init.Nat.pred (cnt e)).
-  + rewrite Nat.eqb_refl in Hfss.
-    injection Hfss  ; intros ; subst.
-    rewrite map_map.
-    right.
-    reflexivity.
- +   
-    assert( Hn : S n <> 0) ; auto.
-    rewrite <- Nat.eqb_neq in Hn.    
-    rewrite Hn in Hfss; clear Hn.
-    cbn in Hfss.
-    injection Hfss  ; intros ; subst.
-    left; cbn.
-    rewrite map_map.
-    reflexivity.
-Qed.
   
 Lemma fss_active_unique_for_id : forall t  s,
   snd (functional_scheduler_star t) = s  -> unique_for id (active s).
