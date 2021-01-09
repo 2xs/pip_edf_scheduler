@@ -1020,5 +1020,28 @@ Proof.
      destruct Hno ; auto.
 Qed.
 
+
+Lemma map_tl{A B : Type} : forall (f : A -> B) l,
+    map f (tl l) = tl (map f l).
+Proof.
+induction l ; auto.  
+Qed.
+
+Lemma map_hd{A B : Type} : forall (f : A -> B) l b,
+     hd_error (map f l) = Some b -> exists a,  f a = b /\ hd_error  l = Some a.
+Proof.
+intros f l b Hh.  
+destruct l ; inversion Hh ; subst.
+now exists a.
+Qed.
+
+Lemma hd_in{A : Type} : forall l (e : A), hd_error l = Some e -> In e l.
+Proof.
+intros l e Hh.  
+destruct l ; inversion Hh ; subst.
+constructor ; auto.
+Qed.
+
+
 End Misc.
 
