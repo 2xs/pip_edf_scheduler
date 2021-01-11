@@ -99,9 +99,9 @@ Definition update_entries : RT CRet :=
   do new_jobs <- jobs_arriving N ; (* get all jobs arriving at current time, having id < N *)
   do finished <- job_terminating;  (* does a job finish at current time ? *)
   do expired <- job_expired;       (* is the job expired ? *)
-  do not_expired <- not expired;
-  do finished_and_not_expired <- and finished not_expired ;
-  (if finished_and_not_expired then (* i remove its entry (NB the first one) from active list*)
+(*   do not_expired <- not expired; *)
+  do finished_or_expired <- or finished expired ;
+  (if finished_or_expired then (* i remove its entry (NB the first one) from active list*)
     remove_first_active_entry
   else
     ret tt)
@@ -145,7 +145,7 @@ Definition inc_time_counter : RT unit :=
 
 Definition update_counters : RT unit :=
   decrease_cnt_first;; (* decrease cnt field of first entry corresponding to the running job*)
-  remove_first_if_expired;; (* if field became 0 the budget's job is 0 : remove it from actve list *)
+  (* remove_first_if_expired;; (* if field became 0 the budget's job is 0 : remove it from actve list *)*)
   decrease_all_del ;;
   inc_time_counter.
 
