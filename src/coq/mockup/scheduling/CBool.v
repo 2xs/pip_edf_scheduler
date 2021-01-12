@@ -33,3 +33,6 @@ Definition not (b : CBool) : RT CBool :=
 
 Definition and (b1 b2 : CBool) : RT CBool :=
   ret (andb b1 b2).
+
+Definition or (b1 b2 : CBool) : RT CBool :=
+  ret (orb b1 b2).

@@ -14,4 +14,8 @@ static inline coq_CBool CBool_and(coq_CBool b1, coq_CBool b2) {
 	return b1 && b2;	
 };
 
+static inline coq_CBool CBool_or(coq_CBool b1, coq_CBool b2) {
+	return b1 || b2;	
+};
+
 #endif
