@@ -73,14 +73,8 @@ let b :=
          (cnt e <=? budget j - duration j)
      | None => false
      end
-in
-let b' :=  match hd_error s.(active) with
-     | Some e =>
-         cnt e =? 0
-     | None => false
-           end
 in             
-let active1 := if b && (negb b') then tl s.(active) else s.(active) in
+let active1 := if b  then tl s.(active) else s.(active) in
 let active2 :=
        functional_insert_new_entries_fuel N  l  active1  in
 
@@ -178,10 +172,33 @@ Definition read_inputs  :=
   do expired <- job_expired;       (* is the job expired ? *)
   ret (new_jobs, finished,expired).
 
-Definition update_first_entry (finished expired : CBool) :=
-  do not_expired <- not expired;
-  do finished_and_not_expired <- and finished not_expired ;
-  (if finished_and_not_expired then (* i remove its entry (NB the first one) from active list*)
+Lemma read_inputs_redundancy : forall s l b b' s',  read_inputs E s = ((l,b,b'), s') -> b || b' = b.
+Proof.
+intros s l b b' s' Hri.
+unfold read_inputs,jobs_arriving,job_terminating,job_expired,get_first_active_entry,get_entry_counter,is_active_list_empty, bind,ret  in Hri.
+remember (active s) as acs.
+destruct acs.
+* injection Hri ; intros ; subst; auto.
+*rewrite <- Heqacs in Hri.
+  cbn in Hri.  
+  injection Hri ; intros ; subst.
+  remember ( (cnt e =? zero) ) as b'.
+  destruct b' ; symmetry in Heqb'.
+  +
+    apply beq_nat_true in Heqb'.
+    rewrite Heqb'.
+    assert (Hle : zero <= budget (Jobs (id e)) - duration (Jobs (id e))) ; unfold zero ; try lia.
+    apply leb_correct in Hle.
+    unfold zero in Hle.
+    rewrite Hle; auto.
+  +
+    apply orb_false_r.
+Qed.
+
+    
+  Definition update_first_entry (finished expired : CBool) :=
+  do finished_or_expired <- or finished expired ;
+  (if finished_or_expired then (* i remove its entry (NB the first one) from active list*)
     remove_first_active_entry
   else
     ret tt).
@@ -244,7 +261,7 @@ in
 ( (l,b,b'), s).
 
 Definition functional_update_first_entry (s : State) (b b' : bool) :=
-  let active1 := if b && (negb b') then tl s.(active) else s.(active) in
+  let active1 := if b then tl s.(active) else s.(active) in
   (tt,mk_State s.(now) active1).
 
 Definition functional_add_new_entries_fuel(s:State) (l : list nat) :=
@@ -265,7 +282,7 @@ Definition functional_write_output (s : State) :=
 Definition functional_decomposed_update_entries(s : State) :=
   let (tuple,s') :=  functional_read_inputs s in
   match tuple with (l, b,b') =>
-    let (_,s'') := functional_update_first_entry  s' b b' in
+    let (_,s'') := functional_update_first_entry  s' b  b' in
     let (_,s''') := functional_add_new_entries_fuel s'' l in
     functional_write_output s'''
   end.
@@ -327,19 +344,18 @@ Qed.
 
 
 Lemma update_first_entry_refinement :  forall b b' r s0 s,
-    update_first_entry b b' E s0 = (r,s) ->
+    b || b' = b  -> update_first_entry b b' E s0 = (r,s) ->
     functional_update_first_entry s0 b b'  = (r,s).
 Proof.  
-intros b b' r s0 s Hu.
-unfold update_first_entry in Hu.  
+intros b b'  r s0 s Hbb' Hu.
+unfold update_first_entry,  or, bind, ret in Hu.  
 unfold functional_update_first_entry.
+rewrite Hbb' in Hu.
 destruct r.
 f_equal ; auto.
-unfold not, and, remove_first_active_entry, bind, ret in Hu.
-case_eq (b && negb b') ; intros Hcas ; rewrite Hcas in *  ;
-injection Hu ; intros ; subst ; auto.
-destruct s.
-f_equal ; auto.
+unfold or, remove_first_active_entry, bind, ret in Hu.
+case_eq b; intros Hcas ; rewrite Hcas in *  ; injection Hu ; intros ; subst ; auto.
+destruct s ; auto.
 Qed.
 
 
@@ -491,8 +507,10 @@ generalize Heqri  ; intro Heqri_cp.
 rewrite <- read_inputs_refinement with (s0 := s0) in Heqri ; auto.
 assert (Heq  : (r,s) = (r',s') ) ; [congruence | ].
 injection Heq ; intros ; subst.
-clear s0 Heq Heqri Heqri_cp Heqfri.
+clear  Heq Heqri Heqfri.
 destruct r' as ((l & b) & b').
+apply read_inputs_redundancy in Heqri_cp.
+rename Heqri_cp into Hbb'.
 remember (functional_update_first_entry s' b b') as fri.
 destruct fri as (r,s).
 remember (update_first_entry b b' E s') as ri.
@@ -513,11 +531,8 @@ generalize Heqri  ; intro Heqri_cp.
 erewrite <- add_new_entries_refinement with (s0 := s'') in Heqri ; eauto.
 assert (Heq  : (r,s) = (r',s') ) ; [congruence | ].
 injection Heq ; intros ; subst.
-clear  Heq Heqri Heqri_cp Heqfri r' s'' b b' l.
-
-
 remember (write_output E s') as ri.
-destruct ri as (r'',s'').
+destruct ri as (r'',s''').
 erewrite write_output_refinement; eauto.
 Qed.
 
@@ -531,77 +546,14 @@ destruct r.
 f_equal.
 unfold bind in Hs.
 cbn in Hs.
-remember (remove_first_if_expired E  {|
-            now := now s0;
-            active := match hd_error (active s0) with
-                      | Some entry =>
-                          Entry.decrease_cnt entry
-                          :: tl (active s0)
-                      | None => []
-                      end |}) as _s'.
-destruct _s' as (u,s').
 unfold State.set_time_counter in Hs.
 injection Hs ; intros ; subst.
 f_equal.
-2 : {
-  unfold Entry.decrease_del, decrease_all_del_func.
-  f_equal.
-  clear Hs.
-  remember (active s0) as as0.
-  destruct as0.
-  2 : {
-    cbn in *.
-    unfold CNat.zero in *.
-    case_eq (Init.Nat.pred (cnt e) =? 0); intro Hcas; rewrite Hcas in *.
-    * unfold State.remove_first_active_entry in *.
-      injection Heq_s' ; intros ; subst.
-      auto.
-    *  unfold ret in *.
-       injection Heq_s' ; intros ; subst.
-      auto.
-  }
-  cbn in *.
-  unfold CNat.zero in *.
-  case_eq ( (cnt Entry.default_entry) =? 0); intro Hcas; rewrite Hcas in *.
-  2 :{
-    unfold ret in *.
-    injection Heq_s' ; intros; subst.
-    auto.
-  }
-  unfold State.remove_first_active_entry in *.
-  injection Heq_s' ; intros ; subst.
-  auto.
-}
+unfold Entry.decrease_del, decrease_all_del_func, decrease_cnt.
 f_equal.
-unfold State.remove_first_active_entry, remove_first_if_expired in *.
-unfold bind, ret in *.
-unfold State.get_first_active_entry in *.
-cbn in *.
- remember (active s0) as as0.
- destruct as0.
-* cbn in *.
-  clear Hs.
-   unfold CNat.zero in *.
-  case_eq ( (cnt Entry.default_entry) =? 0); intro Hcas; rewrite Hcas in *.
-  2 :{
-    unfold ret in *.
-    injection Heq_s' ; intros; subst.
-    auto.
-  }
-  unfold State.remove_first_active_entry in *.
-  injection Heq_s' ; intros ; subst.
-  auto.
-* cbn in *.
-  clear Hs.
-   unfold CNat.zero in *.
-  case_eq ( Init.Nat.pred (cnt e) =? 0); intro Hcas; rewrite Hcas in *.
-  2 :{
-    injection Heq_s' ; intros; subst.
-    auto.
-  }
-  unfold State.remove_first_active_entry in *.
-  injection Heq_s' ; intros ; subst.
-  auto.
+clear Hs.
+remember (active s0) as as0.
+destruct as0; auto.
 Qed.
 
 
