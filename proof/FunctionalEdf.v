@@ -1501,8 +1501,7 @@ forall s e s',
 Proof.
   intros s e s' Hfss.
   unfold functional_update_entries in Hfss.
-  remember (
-            insert_all Entry
+  remember ( insert_all Entry
               (fun e1 e2 : Entry =>
                deadline (Jobs (id e1)) <=?
                deadline (Jobs (id e2)))
@@ -1511,8 +1510,7 @@ Proof.
                   {|
                   id := j;
                   cnt := budget (Jobs j);
-                  del := deadline (Jobs j) -
-                         arrival (Jobs j) |})
+                  del := deadline (Jobs j) - arrival (Jobs j) |})
                  (filter (fun j : nat => j <? N)
                     (jobs_arriving_at (now s))))
               (if
@@ -1522,14 +1520,9 @@ Proof.
                     budget (Jobs (id e)) -
                     duration (Jobs (id e))
                 | None => false
-                end &&
-                negb
-                  match hd_error (active s) with
-                  | Some e => cnt e =? 0
-                  | None => false
-                  end
+                end
                then tl (active s)
-                else active s)) as ins.
+               else active s)) as ins.
     destruct ins.
   *  injection Hfss ; intros ; discriminate.
   * cbn in Hfss.  injection Hfss; intros ; subst.
@@ -1540,7 +1533,7 @@ Qed.
 
 
 Lemma del_counts_to_deadline :  forall t o b s,
-    running  t  =  ( (o, b) ,s)  ->
+    running  t  =  (o, b ,s)  ->
        forall e,  In e (active s) ->
              del e = deadline (Jobs (id e)) - t.
 Proof.
@@ -1549,7 +1542,7 @@ induction t  ; intros o b s  Hrun e Hin.
    cbn in *.
    unfold functional_update_entries, init in Hrun.
    cbn in Hrun.
-   remember (insert_all Entry
+   remember ( insert_all Entry
               (fun e1 e2 : Entry =>
                deadline (Jobs (id e1)) <=?
                deadline (Jobs (id e2)))
@@ -1558,8 +1551,7 @@ induction t  ; intros o b s  Hrun e Hin.
                   {|
                   id := j;
                   cnt := budget (Jobs j);
-                  del := deadline (Jobs j) -
-                         arrival (Jobs j) |})
+                  del := deadline (Jobs j) - arrival (Jobs j) |})
                  (filter
                     (fun j : nat =>
                      match N with
@@ -1601,7 +1593,8 @@ induction t  ; intros o b s  Hrun e Hin.
   rewrite <- Heqrs in IHt.
   clear Heqrs.
   unfold functional_update_entries in Hrun.
-  remember (  insert_all _  (fun e1 e2 : Entry =>
+  remember (insert_all Entry
+              (fun e1 e2 : Entry =>
                deadline (Jobs (id e1)) <=?
                deadline (Jobs (id e2)))
               (map
@@ -1609,8 +1602,7 @@ induction t  ; intros o b s  Hrun e Hin.
                   {|
                   id := j;
                   cnt := budget (Jobs j);
-                  del := deadline (Jobs j) -
-                         arrival (Jobs j) |})
+                  del := deadline (Jobs j) - arrival (Jobs j) |})
                  (filter (fun j : nat => j <? N)
                     (jobs_arriving_at (now s''))))
               (if
@@ -1620,12 +1612,7 @@ induction t  ; intros o b s  Hrun e Hin.
                     budget (Jobs (id e)) -
                     duration (Jobs (id e))
                 | None => false
-                end &&
-                negb
-                  match hd_error (active s'') with
-                  | Some e => cnt e =? 0
-                  | None => false
-                  end
+                end
                then tl (active s'')
                else active s'')) as ins.
   destruct ins.
@@ -1655,8 +1642,7 @@ induction t  ; intros o b s  Hrun e Hin.
         cbn in Hin.
         destruct ((cnt e1 <=?
              budget (Jobs (id e1)) -
-             duration (Jobs (id e1))) &&
-                  negb (cnt e1 =? 0)) ; auto.
+             duration (Jobs (id e1)))) ; auto.
         constructor 2; auto.
       }
       
