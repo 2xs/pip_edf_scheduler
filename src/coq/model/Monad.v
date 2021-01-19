@@ -51,7 +51,7 @@ fun env s => let (a, s') := m env s in f a env s'.
 (* notations for the sequence *)
 Notation "'do' x <- m ; e" :=
   (bind m (fun x => e))
-  (at level 60, x ident, m at level 200, e at level 60) : monad_scope.
+  (at level 60, x name, m at level 200, e at level 60) : monad_scope.
 Notation " m ;; e" :=
   (bind m (fun _ => e))
   (at level 60, e at level 60) : monad_scope.
