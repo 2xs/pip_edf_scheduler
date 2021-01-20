@@ -1,3 +1,4 @@
+
 #####################################################################
 ##                       Directory variables                       ##
 #####################################################################
@@ -12,12 +13,13 @@ C_PARTITION_MOCK_DIR=$(SRC_DIR)/partition
 
 # Coq sources related directories
 COQ_SRC_DIR=$(SRC_DIR)/coq
-COQ_MAIN_DIR=$(COQ_SRC_DIR)/main
+#COQ_MAIN_DIR=$(COQ_SRC_DIR)/main #Not yet used
 COQ_MOCKUP_DIR=$(COQ_SRC_DIR)/mockup
 COQ_PARTITION_MOCKUP_DIR=$(COQ_MOCKUP_DIR)/partition
 COQ_SCHEDULING_MOCKUP_DIR=$(COQ_MOCKUP_DIR)/scheduling
 COQ_MODEL_DIR=$(COQ_SRC_DIR)/model
 COQ_SCHEDULER_DIR=$(COQ_SRC_DIR)/scheduler
+COQ_EXTRACTION_DIR=$(COQ_SRC_DIR)/extraction
 
 # Coq proofs related directories
 COQ_PROOF_DIR=proof
@@ -32,12 +34,13 @@ BUILD_DIR=build
 # Coq source files
 COQ_SRC_FILES=$(foreach dir, $(COQ_MAIN_DIR)\
                              $(COQ_MODEL_DIR)\
-                             $(COQ_MOCKUP_DIR)\
                              $(COQ_PARTITION_MOCKUP_DIR)\
                              $(COQ_SCHEDULING_MOCKUP_DIR)\
                              $(COQ_SCHEDULER_DIR),\
                    $(wildcard $(dir)/*.v)\
                )
+# Coq file needed for extraction
+COQ_EXTRACTION_FILES=$(wildcard $(COQ_EXTRACTION_DIR)/*.v)
 
 # Coq prooof files
 COQ_PROOF_FILES=$(wildcard $(COQ_PROOF_DIR)/*.v)
@@ -56,26 +59,32 @@ C_INTERFACE_IMPL_OBJ=$(patsubst %.c,$(BUILD_DIR)/%.o, $(notdir $(C_INTERFACE_IMP
 C_PARTITION_MOCK_OBJ=$(patsubst %.c,$(BUILD_DIR)/%.o, $(notdir $(C_PARTITION_MOCK_SRC)))
 
 # Jsons (Coq extracted AST)
-JSONS_FILES=EDF.json CNat.json CBool.json CRet.json State.json Primitives.json Jobs.json Entry.json JobSet.json
-JSONS=$(patsubst %,$(BUILD_DIR)/%, $(JSONS_FILES))
+JSONS=EDF.json CNat.json CBool.json CRet.json State.json Primitives.json Jobs.json Entry.json JobSet.json
+JSONS:=$(patsubst %,$(BUILD_DIR)/%, $(JSONS))
 
+MAKEFLAGS+=-j
+
+#####################################################################
+##                         Default target                          ##
+#####################################################################
+
+all : proofs $(BUILD_DIR)/partition_mockup
 
 #####################################################################
 ##                    Code compilation targets                     ##
 #####################################################################
+
 
 DIGGER=tools/digger/digger
 CFLAGS+=-Wall -Wextra
 
 # Rely on Makefile.coq to handle dependencies of coq code and
 # compile it. Extracts necessary information for generation of C files
-coq_code_compilation : Makefile.coq
-	$(MAKE) only TGTS="src/coq/mockup/Extraction.vo" -j
+coq_code_extraction : Makefile.coq $(BUILD_DIR)
+	$(MAKE) --no-print-directory -f Makefile.coq only TGTS="src/coq/extraction/Extraction.vo" -j
 
 # All jsons are generated once Extraction.v is compiled
-$(JSONS_FILES) &: coq_code_compilation ;
-$(JSONS) &: $(JSONS_FILES) $(BUILD_DIR)
-	mv $(JSONS_FILES) $(BUILD_DIR)/
+$(JSONS) &: coq_code_extraction ;
 
 $(BUILD_DIR)/EDF.c: $(JSONS)
 	$(DIGGER) -m Monad -m AbstractTypes -m Datatypes -M coq_RT\
@@ -109,12 +118,18 @@ $(BUILD_DIR)/partition_mockup: $(C_GENERATED_OBJ) $(C_INTERFACE_IMPL_OBJ) $(C_PA
 ##                      Proof related targets                      ##
 #####################################################################
 
-proof_compilation: Makefile.coq $(COQ_SRC_FILES) $(COQ_PROOF_FILES)
+proofs: Makefile.coq $(BUILD_DIR) $(COQ_SRC_FILES) $(COQ_PROOF_FILES) $(COQ_EXTRACTION_FILES)
 	$(MAKE) -f Makefile.coq all
+
+%.vo : Makefile.coq $(BUILD_DIR)
+	$(MAKE) --no-print-directory -f Makefile.coq only TGTS="$@" -j
 
 ####################################################################
 ##                        Utility targets                         ##
 ####################################################################
+
+Makefile.coq: Makefile _CoqProject $(COQ_EXTRACTION_FILES) $(COQ_SRC_FILES) $(COQ_PROOF_FILES)
+	coq_makefile -f _CoqProject -o Makefile.coq $(COQ_EXTRACTION_FILES) $(COQ_SRC_FILES) $(COQ_PROOF_FILES)
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -122,30 +137,7 @@ $(BUILD_DIR):
 clean: Makefile.coq
 	$(MAKE) -f Makefile.coq clean
 	rm -f Makefile.coq Makefile.coq.conf *~ .*.aux *.crashcoqide
-	rm -f $(JSONS_FILES)
 	rm -rf $(BUILD_DIR)
 
-####################################################################
-##                    Makefile.coq related                        ##
-####################################################################
 
-# KNOWNTARGETS will not be passed along to CoqMakefile
-KNOWNTARGETS := Makefile.coq proof_compilation
-# KNOWNFILES will not get implicit targets from the final rule, and so
-# depending on them won't invoke the submake
-# Warning: These files get declared as PHONY, so any targets depending
-# on them always get rebuilt
-KNOWNFILES   := Makefile _CoqProject
-
-.DEFAULT_GOAL := invoke-coqmakefile
-
-Makefile.coq: Makefile _CoqProject
-	$(COQBIN)coq_makefile -f _CoqProject -o Makefile.coq $(COQ_SRC_FILES) $(COQ_PROOF_FILES)
-
-invoke-coqmakefile: Makefile.coq
-	$(MAKE) --no-print-directory -f Makefile.coq $(filter-out $(KNOWNTARGETS),$(MAKECMDGOALS))
-# This should be the last rule, to handle any targets not declared above
-%: invoke-coqmakefile
-	@true
-
-.PHONY: all coq_code_compilation proof_compilation invoke-coqmakefile clean $(KNOWNFILES)
+.PHONY: all coq_code_extraction proofs clean

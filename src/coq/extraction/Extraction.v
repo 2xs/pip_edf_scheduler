@@ -42,6 +42,13 @@ From Scheduler.EDF Require Import EDF.
 Require Extraction.
 Extraction Language JSON.
 
+(*
+   Place the extracted AST inside the "build" folder at root
+   What ? Stop staring at me like that, even CompCert uses this. Yikes
+   https://github.com/AbsInt/CompCert/blob/master/extraction/extraction.v#L158
+*)
+Cd "build".
+
 Extraction Library CBool.
 Extraction Library CNat.
 Extraction Library Entry.
@@ -53,3 +60,5 @@ Extraction Library CRet.
 (*Extraction Library PipWrappers.*)
 Extraction Library Primitives.
 Extraction Library EDF.
+
+Cd "..".
