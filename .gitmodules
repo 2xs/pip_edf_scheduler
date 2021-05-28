@@ -3,3 +3,7 @@
 	url = https://github.com/2xs/digger
 	branch = develop
 	ignore = dirty
+[submodule "src/partition/lib/libpip"]
+	path = src/partition/lib/libpip
+	url = https://gitlab.univ-lille.fr/2xs/pip/libpip
+	ignore = dirty

@@ -1,6 +1,5 @@
 #include "mem_repr.h"
 #include "State.h"
-#include <stdio.h>
 
 void State_insert_new_active_entry(coq_Entry entry, entry_cmp_func_type entry_comp_func) {
 	int *entry_index_ptr = &(ACTIVE_ENTRIES_HEAD_INDEX);
