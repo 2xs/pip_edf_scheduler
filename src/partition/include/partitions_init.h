@@ -1,5 +1,5 @@
 /*******************************************************************************/
-/*  © Université Lille 1, The Pip Development Team (2015-2018)                 */
+/*  © Université Lille 1, The Pip Development Team (2015-2020)                 */
 /*                                                                             */
 /*  This software is a computer program whose purpose is to run a minimal,     */
 /*  hypervisor relying on proven properties such as memory isolation.          */
@@ -31,24 +31,17 @@
 /*  knowledge of the CeCILL license and that you accept its terms.             */
 /*******************************************************************************/
 
-OUTPUT_FORMAT(binary)
-ENTRY(init)
-SECTIONS {
-    .text 0x700000 :
-    {
-        *(.text)
-    }
+/*!
+ * \file
+ * This file contains functions related to scheduler initialization
+ */
 
-    .data :
-    {
-        *(.data)
-        *(.rodata)
-    }
+#ifndef __PARTITIONS_INIT__
+#define __PARTITIONS_INIT__
 
-    .bss :
-    {
-        *(.bss)
-        . = ALIGN(0x1000);
-    }
-    end = .;
-}
+#include <stdint.h>
+#include "mem_repr.h"
+
+extern uint32_t JOB_ID_TO_PART_DESC[coq_N];
+
+#endif

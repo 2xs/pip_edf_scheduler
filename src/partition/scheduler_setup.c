@@ -52,6 +52,7 @@
 #include "partition.h"
 #include "EDF.h"
 #include "mem_repr.h"
+#include "partitions_init.h"
 
 /*
  * Function prototypes
@@ -109,7 +110,7 @@ void timer_handler(void)
 		scheduler_wfi();
 	} else {
 		executing_job_id = elected_partition.job_id;
-		yield_to_task(elected_partition.job_id);
+		yield_to_task(JOB_ID_TO_PART_DESC[elected_partition.job_id]);
 	}
 }
 
@@ -131,7 +132,7 @@ void init_scheduler_state(void) {
 	printf("Setting interrupt hooks...\n");
 
 	// Allocate two interrupt contexts
-	user_ctx_t *timer_handler_ctx    = Pip_AllocContext();
+	user_ctx_t *timer_handler_ctx = Pip_AllocContext();
 	user_ctx_t *job_termination_handler_ctx = Pip_AllocContext();
 
 	// Allocate a page for the handler stack

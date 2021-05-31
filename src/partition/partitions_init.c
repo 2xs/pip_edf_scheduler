@@ -43,6 +43,7 @@ extern void *__task_code_end;
 
 #define NULL ((void *)0)
 
+uint32_t JOB_ID_TO_PART_DESC[coq_N];
 
 void boot_scheduler_partition(pip_fpinfo* boot_info);
 static void print_boot_info(pip_fpinfo* boot_info);
@@ -123,7 +124,7 @@ static void setup_tasks(void)
 					   task_code_end_addr - task_code_start_addr,
 					   LOAD_VADDRESS,
 					   // for demonstration purposes we'll take the expected duration of the task
-					   INTERNAL_ARRAY[i].job.duration);
+					   i);
 		switch (ret)
 		{
 			case 0: continue;
@@ -161,7 +162,7 @@ static void setup_tasks(void)
  *    (i.e. original code is left untouched)
  */
 static uint32_t create_task(uint32_t code_to_map_start, uint32_t size_code_to_map,
-		            uint32_t code_load_address, uint32_t expected_task_duration)
+		            uint32_t code_load_address, uint32_t task_number)
 {
 	// Allocate 5 memory pages in order to create a child partition
 	uint32_t descChild       = (uint32_t) Pip_AllocPage();
@@ -224,7 +225,8 @@ static uint32_t create_task(uint32_t code_to_map_start, uint32_t size_code_to_ma
 			                     sizeof(user_ctx_t) - sizeof(uint32_t));
 
 	printf("Setting the expected duration argument in the stack...\n");
-	*arg_duration_counter_ptr = expected_task_duration;
+	*arg_duration_counter_ptr = INTERNAL_ARRAY[task_number].job.duration;
+	JOB_ID_TO_PART_DESC[task_number] = descChild;
 
 	printf("Filling the task's initial context...\n");
 	// Compute the virtual address of the task's context
