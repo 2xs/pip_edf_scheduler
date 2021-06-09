@@ -103,6 +103,7 @@ void timer_handler(void)
 
 	// call the scheduler
 	coq_CRet elected_partition = scheduler();
+	JOB_DONE = 0;
 
 	if (!elected_partition.exists) {
 		printf("No job to schedule, waiting...\n");

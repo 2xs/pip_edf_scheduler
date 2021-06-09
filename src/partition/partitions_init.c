@@ -118,7 +118,7 @@ static void setup_tasks(void)
 	uint32_t task_code_end_addr   = (uint32_t) &__task_code_end;
 
 	// create a new task partition for every task in the schedule plan
-	for (uint32_t i = 0 ; i < coq_N; i ++) {
+	for (uint32_t i = 1 ; i < coq_N; i ++) {
 		// Bootstrap the child partition
 		uint32_t ret = create_task(task_code_start_addr,
 					   task_code_end_addr - task_code_start_addr,
@@ -217,20 +217,25 @@ static uint32_t create_task(uint32_t code_to_map_start, uint32_t size_code_to_ma
 
 	// Store the child's initial context at the beginning of its stack
 	printf("Reserving space for the tasks's initial context in its stack...\n");
-	user_ctx_t *contextPAddr = (user_ctx_t*) (stackPage + PAGE_SIZE -
-						sizeof(user_ctx_t));
+	user_ctx_t *contextPAddr = (user_ctx_t*) (stackPage + PAGE_SIZE
+			             - sizeof(user_ctx_t));
+
+	printf("Reserving space for the task's id...\n");
+	uint32_t *arg_task_id_ptr = (uint32_t *) ((uint32_t) contextPAddr
+			             - sizeof(uint32_t));
 
 	printf("Reserving space for the task's expected duration...\n");
-	uint32_t *arg_duration_counter_ptr = (uint32_t *) (stackPage + PAGE_SIZE -
-			                     sizeof(user_ctx_t) - sizeof(uint32_t));
+	uint32_t *arg_duration_counter_ptr = (uint32_t *) ((uint32_t) arg_task_id_ptr
+			             - sizeof(uint32_t));
 
 	printf("Setting the expected duration argument in the stack...\n");
 	*arg_duration_counter_ptr = INTERNAL_ARRAY[task_number].job.duration;
+	*arg_task_id_ptr = task_number;
 	JOB_ID_TO_PART_DESC[task_number] = descChild;
 
 	printf("Filling the task's initial context...\n");
 	// Compute the virtual address of the task's context
-	user_ctx_t *contextVAddr = (user_ctx_t*) (STACK_TOP_VADDR + PAGE_SIZE -
+	user_ctx_t *context_vaddr_ptr = (user_ctx_t*) (STACK_TOP_VADDR + PAGE_SIZE -
 			sizeof(user_ctx_t));
 
 	// Create the task's context
@@ -238,8 +243,8 @@ static uint32_t create_task(uint32_t code_to_map_start, uint32_t size_code_to_ma
 	contextPAddr->eip      = LOAD_VADDRESS;
 	contextPAddr->pipflags = 0;
 	contextPAddr->eflags   = 0x202;
-	contextPAddr->regs.ebp = STACK_TOP_VADDR + PAGE_SIZE;
-	contextPAddr->regs.esp = contextPAddr->regs.ebp - sizeof(user_ctx_t) - sizeof(uint32_t);
+	contextPAddr->regs.ebp = (uint32_t) context_vaddr_ptr;
+	contextPAddr->regs.esp = contextPAddr->regs.ebp - 2 * sizeof(uint32_t) - sizeof(uint32_t);
 	contextPAddr->valid    = 1;
 
 	// Map the stack page to the newly created partition
@@ -265,7 +270,7 @@ static uint32_t create_task(uint32_t code_to_map_start, uint32_t size_code_to_ma
 	user_ctx_t **vidtPage = (user_ctx_t**) Pip_AllocPage();
 
 	// Save the task's context into the task's VIDT
-	vidtPage[0] = contextVAddr;
+	vidtPage[0] = context_vaddr_ptr;
 
 	// Map the VIDT page to the newly created partition
 	printf("Mapping task's VIDT...\n");

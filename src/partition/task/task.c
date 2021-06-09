@@ -55,13 +55,24 @@ typedef struct __attribute__((packed)) user_ctx_s
 	uint32_t nfu[4];    //!< Unused
 } user_ctx_t;
 
-uint32_t wake_counter;
+#define SERIAL_PORT 0x3f8
+#define VIDT_VADDR  0xFFFFF000
+static char Hi_str[]  = "Hi from task ";
+static char hex_str[] = "0123456789ABCDEF";
+static uint32_t wake_counter;
+static uint32_t id;
+static user_ctx_t **VIDT = (user_ctx_t **)VIDT_VADDR;
+
+uint32_t serial_transmit_ready(void);
+void serial_putc(char c);
+void serial_puts(const char *str);
 void decrease_counter();
 
-void init(uint32_t initial_counter, user_ctx_t initial_context_ptr) {
+void init(uint32_t initial_counter, uint32_t task_id) {
 	wake_counter = initial_counter;
+	id = task_id;
 	// set the eip of the context to decrease_counter's address
-	initial_context_ptr.eip = (uint32_t) &decrease_counter;
+	VIDT[0]->eip = (uint32_t) &decrease_counter;
 	decrease_counter();
 }
 
@@ -70,6 +81,16 @@ void init(uint32_t initial_counter, user_ctx_t initial_context_ptr) {
 void decrease_counter()
 {
 	wake_counter--;
+	serial_puts(Hi_str);
+	while(!serial_transmit_ready());
+	serial_putc(hex_str[id]);
+	while(!serial_transmit_ready());
+	serial_putc('\n');
+//	while(!serial_transmit_ready());
+//	serial_putc(hex_str[wake_counter]);
+//	while(!serial_transmit_ready());
+//	serial_putc('\n');
+
 	// if we reached the expected termination time slot
 	if(wake_counter == 0) {
 		//signal termination
@@ -81,3 +102,47 @@ void decrease_counter()
 	// else busy wait for the clock interrupt
 	for(;;);
 }
+
+uint32_t serial_transmit_ready(void);
+void serial_putc(char c);
+void serial_puts(const char *str);
+
+uint32_t serial_transmit_ready(void) {
+    register uint32_t result asm("eax");
+    asm (
+       "push %1;"
+       "lcall $0x38,$0x0;"
+       "add $0x4, %%esp;"
+       /* Outputs */
+       : "=r" (result)
+       /* Inputs */
+       : "i" (SERIAL_PORT+5)
+       /* Clobbers */
+       :
+    );
+    return result & 0x20;
+}
+
+void serial_putc(char c) {
+    asm (
+        "push %1;"
+        "push %0;"
+	"lcall $0x30, $0x0;"
+	"add $0x8, %%esp"
+	/* Outputs */
+	:
+	/* Inputs */
+	: "i" (SERIAL_PORT),
+	  "r" ((uint32_t) c)
+	/* Clobbers */
+	:
+    );
+}
+
+void serial_puts(const char *str) {
+    for (char *it = str; *it; ++it) {
+	while(!serial_transmit_ready());
+        serial_putc(*it);
+    }
+}
+

@@ -99,7 +99,7 @@ MAKEFLAGS+=-j
 ##                         Default target                          ##
 #####################################################################
 
-all : pip-edf-scheduler.bin# proofs $(BUILD_DIR)/partition_mockup
+all : proofs pip-edf-scheduler.bin $(BUILD_DIR)/partition_mockup
 
 #####################################################################
 ##                    Code compilation targets                     ##
@@ -112,7 +112,7 @@ LIBPIP_ARCH_INC_DIR=$(LIBPIP_DIR)/arch/x86/include
 LIBPIP=$(LIBPIP_DIR)/lib/libpip.a
 
 CFLAGS=-Wall -Wextra
-PIP_CFLAGS=-m32 --freestanding -nostdlib -fno-pie -fno-stack-protector
+PIP_CFLAGS=-m32 --freestanding -nostdlib -no-pie -fno-pic -fno-stack-protector
 
 PIP_LDFLAGS=-m elf_i386
 
