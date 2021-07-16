@@ -74,16 +74,7 @@ Qed.
 
 Lemma scheduler_star_triple : forall n,
 {{
-    fun env s => env = (fun k =>
-                           (map (fun j =>
-                                  mk_Job
-                                    j
-                                    (Jobs j).(arrival)
-                                    (Jobs j).(duration)
-                                    (Jobs j).(budget)
-                                    (Jobs j).(deadline))          
-                                (jobs_arriving_at k))) /\
-      s = init
+    fun env s => env = E /\ s = init
 }}
 scheduler_star n
 {{
@@ -92,58 +83,22 @@ scheduler_star n
 Proof.
   intros  t env s (Henv & Hs) ; subst.
   case_eq (scheduler_star  t
-      (fun k : CNat =>
-       map
-         (fun j : CNat =>
-          {|
-          jobid := j;
-          arrival := arrival (Jobs j);
-          duration := duration (Jobs j);
-          budget := budget (Jobs j);
-          deadline := deadline (Jobs j) |}) 
-         (jobs_arriving_at k)) init); intros o s Hs.
+      E init); intros o s Hs.
   rewrite <- Hs ; clear Hs o s.
   induction t ; auto.
   rewrite scheduler_star_S,  functional_scheduler_star_S.
   unfold bind, ret.
   case_eq ( functional_scheduler_star  t) ; intros o s Hfss.
   case_eq (scheduler_star  t
-      (fun k : CNat =>
-       map
-         (fun j : CNat =>
-          {|
-          jobid := j;
-          arrival := arrival (Jobs j);
-          duration := duration (Jobs j);
-          budget := budget (Jobs j);
-          deadline := deadline (Jobs j) |}) 
-         (jobs_arriving_at k)) init); intros o' s' Hss.
+      E init); intros o' s' Hss.
   case_eq (scheduler 
-       (fun k : CNat =>
-        map
-          (fun j : CNat =>
-           {|
-           jobid := j;
-           arrival := arrival (Jobs j);
-           duration := duration (Jobs j);
-           budget := budget (Jobs j);
-           deadline := deadline (Jobs j) |}) 
-          (jobs_arriving_at k)) s'); intros o'' s'' Hs.
+       E s'); intros o'' s'' Hs.
   rewrite Hfss, Hss in IHt.
   injection IHt ; intros; subst.
   clear IHt Hfss Hss t.
   clear o'.
  
-  specialize (scheduler_triple s'  (fun k : nat =>
-          map
-            (fun j :CNat =>
-             {|
-             jobid := j;
-             arrival := arrival (Jobs j);
-             duration := duration (Jobs j);
-             budget := budget (Jobs j);
-             deadline := deadline (Jobs j) |})
-            (jobs_arriving_at k)) s').
+  specialize (scheduler_triple s' E s').
  unfold CNat in *.
   rewrite Hs.
   intuition.
