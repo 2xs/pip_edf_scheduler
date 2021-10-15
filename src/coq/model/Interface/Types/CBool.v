@@ -25,23 +25,14 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-From Scheduler.Model Require Import AbstractTypes.
 From Scheduler.Model Require Import Monad.
-From Scheduler.SchedulerMockup Require Import CNat.
-Require Import List.
+From Scheduler.Model.Interface.Types Require Import TypesModel.
 
-(* get the id of the nth job from the jobs arriving *)
-Definition is_empty_list (job_set : JobSet) : RT CBool :=
-  ret match job_set with
-      | nil => true
-      | _   => false
-      end.
+Definition not (b : CBool) : RT CBool :=
+  ret (negb b).
 
-Definition get_first_job_id (job_set : JobSet) : RT CNat :=
-  ret match job_set with
-      | nil => zero
-      | head::tail => head
-      end.
+Definition and (b1 b2 : CBool) : RT CBool :=
+  ret (andb b1 b2).
 
-Definition get_remaining_jobs (job_set : JobSet) : RT JobSet :=
-  ret (tail job_set).
+Definition or (b1 b2 : CBool) : RT CBool :=
+  ret (orb b1 b2).

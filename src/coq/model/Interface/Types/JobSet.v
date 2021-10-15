@@ -25,4 +25,22 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-Definition pip_fpinfo_ptr := unit.
+From Scheduler.Model Require Import Monad.
+From Scheduler.Model.Interface.Types Require Import TypesModel CNat.
+Require Import List.
+
+(* get the id of the nth job from the jobs arriving *)
+Definition is_empty_list (job_set : JobSet) : RT CBool :=
+  ret match job_set with
+      | nil => true
+      | _   => false
+      end.
+
+Definition get_first_job_id (job_set : JobSet) : RT CNat :=
+  ret match job_set with
+      | nil => zero
+      | head::tail => head
+      end.
+
+Definition get_remaining_jobs (job_set : JobSet) : RT JobSet :=
+  ret (tail job_set).

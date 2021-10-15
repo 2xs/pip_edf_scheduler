@@ -3,8 +3,9 @@ Import ListNotations.
 Require Import Coq.Bool.Bool.
 Require Import  Coq.Numbers.Natural.Peano.NPeano.
 From Scheduler.Proof Require Import Lib Assumptions JobsAxioms.
-From Scheduler.Model Require Import Monad AbstractTypes.
-From Scheduler.PartitionMockup Require Import Primitives.
+From Scheduler.Model Require Import Monad.
+From Scheduler.Model.Interface Require Import Oracles.
+From Scheduler.Model.Interface.Types Require Import TypesModel.
 
 (* definition of a Hoare triple *)
 Definition hoare

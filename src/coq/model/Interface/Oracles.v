@@ -25,24 +25,22 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-From Scheduler.Model Require Import Monad.
-From Scheduler.Model Require Import AbstractTypes.
+From Scheduler.Model Require Import Monad PureFunctionModels.
+From Scheduler.Model.Interface.Types Require Import TypesModel.
 
-Parameter default_nat : CNat.
-Parameter is_default_nat : CNat -> RT CBool.
+Require Import List.
 
-Definition zero : CNat := 0.
+Definition jobs_arriving (N : nat) : RT JobSet :=
+  fun env s =>
+    let f :=  List.filter (fun j =>  Nat.ltb j N) (map jobid (env s.(now))) in
+     (f, s).
 
-Definition sub (n1 : CNat) (n2 : CNat) : RT CNat :=
-  ret (n1-n2).
-
-Definition succ (n : CNat) : RT CNat :=
-  ret (S(n)).
-
-Definition pred (n : CNat) : RT CNat :=
-  ret (pred n).
-
-Definition eqb (n1 n2 : CNat) : RT CBool :=
-  ret (Nat.eqb n1 n2).
-
-(* TODO : refléter les entiers C plutot que les entiers naturels *)
+(* primitive that checks whether the current job is terminated *)
+(* Primitive *)
+Definition job_terminating : RT CBool :=
+fun _ s => ((match head s.(active) with
+         None => false
+       | Some e =>
+          let j := Jobs (e.(id)) in
+          Nat.leb  e.(cnt)  (j.(budget) - j.(duration))
+         end), s).

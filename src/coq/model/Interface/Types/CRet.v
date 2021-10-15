@@ -26,7 +26,7 @@
  *)
 
 From Scheduler.Model Require Import Monad.
-From Scheduler.Model Require Import AbstractTypes.
+From Scheduler.Model.Interface.Types Require Import TypesModel.
 
 Definition make_ret_type (exist : CBool) (late : CBool) (job_id : CNat) : RT CRet :=
   match exist with

@@ -1,5 +1,3 @@
--Q src/coq/mockup/partition Scheduler.PartitionMockup
--Q src/coq/mockup/scheduling Scheduler.SchedulerMockup
 -Q src/coq/model Scheduler.Model
 -Q src/coq/scheduler Scheduler.EDF
 -Q proof Scheduler.Proof

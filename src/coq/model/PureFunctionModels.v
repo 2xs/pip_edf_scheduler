@@ -25,14 +25,33 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-From Scheduler.Model Require Import AbstractTypes.
 From Scheduler.Model Require Import Monad.
+From Scheduler.Model.Interface.Types Require Import TypesModel.
+Require Import List.
 
-Definition not (b : CBool) : RT CBool :=
-  ret (negb b).
+(* primitive *)
 
-Definition and (b1 b2 : CBool) : RT CBool :=
-  ret (andb b1 b2).
+Parameter Jobs : CNat -> Job.
 
-Definition or (b1 b2 : CBool) : RT CBool :=
-  ret (orb b1 b2).
+Fixpoint insert_Entry_aux (entry : Entry)
+                          (entry_list : list Entry)
+                          (comp_func : Entry -> Entry -> CBool)
+                          : list Entry :=
+  match entry_list with
+  | nil => cons entry nil
+  | cons head tail =>
+      match comp_func entry head with
+      | true => cons entry (cons head tail)
+      | false => cons head (insert_Entry_aux entry tail comp_func)
+      end
+  end.
+
+Fixpoint insert_Entries_aux (entries_to_be_added : list Entry)
+                            (entry_list : list Entry)
+                            (comp_func : Entry -> Entry -> CBool)
+                            : list Entry :=
+  match entries_to_be_added with
+  | nil => entry_list
+  | cons entry remaining_entries => 
+      insert_Entries_aux remaining_entries (insert_Entry_aux entry entry_list comp_func) comp_func
+  end.

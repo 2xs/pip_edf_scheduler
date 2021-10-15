@@ -25,10 +25,8 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-From Scheduler.Model Require Import AbstractTypes.
-From Scheduler.Model Require Import AbstractFunctions.
-From Scheduler.Model Require Import Monad.
-From Scheduler.SchedulerMockup Require Import Entry.
+From Scheduler.Model Require Import Monad PureFunctionModels.
+From Scheduler.Model.Interface.Types Require Import TypesModel Entry.
 Require Import List.
 
 Definition get_time_counter : RT CNat :=

@@ -139,8 +139,8 @@ void serial_putc(char c) {
     );
 }
 
-void serial_puts(const char *str) {
-    for (char *it = str; *it; ++it) {
+void serial_puts(char const *const str) {
+    for (char const *it = str; *it; ++it) {
 	while(!serial_transmit_ready());
         serial_putc(*it);
     }

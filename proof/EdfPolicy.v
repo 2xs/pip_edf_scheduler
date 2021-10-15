@@ -6,9 +6,10 @@ Require Import  Coq.Numbers.Natural.Peano.NPeano.
 Require Import Coq.Bool.Bool.
 Require Import Omega.
 Require Import Lia.
+
+From Scheduler.Model Require Import PureFunctionModels.
 From Scheduler.Proof Require Import Lib Assumptions JobsAxioms.
-From Scheduler.SchedulerMockup Require Import Jobs.
-From Scheduler.Model Require Import AbstractTypes AbstractFunctions.
+From Scheduler.Model.Interface.Types Require Import TypesModel Jobs.
 
 Module EdfPolicyMod (J : JobsAxiomsMod) (Assms : AssumptionsMod J).
   Import J.

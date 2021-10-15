@@ -25,33 +25,43 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-From Scheduler.Model Require Import AbstractTypes.
-From Scheduler.Model Require Import Monad.
-Require Import List.
+From Scheduler.Model Require Import Monad PureFunctionModels.
+From Scheduler.Model.Interface.Types Require Import TypesModel.
 
-(* primitive *)
+Parameter default_entry : Entry.
+Parameter is_default_entry : Entry -> RT CBool.
 
-Parameter Jobs : CNat -> Job.
+(* TODO constructor accessors *)
 
-Fixpoint insert_Entry_aux (entry : Entry)
-                          (entry_list : list Entry)
-                          (comp_func : Entry -> Entry -> CBool)
-                          : list Entry :=
-  match entry_list with
-  | nil => cons entry nil
-  | cons head tail =>
-      match comp_func entry head with
-      | true => cons entry (cons head tail)
-      | false => cons head (insert_Entry_aux entry tail comp_func)
-      end
-  end.
+Definition get_entry_counter (entry : Entry) : RT CNat :=
+  ret (cnt entry).
 
-Fixpoint insert_Entries_aux (entries_to_be_added : list Entry)
-                            (entry_list : list Entry)
-                            (comp_func : Entry -> Entry -> CBool)
-                            : list Entry :=
-  match entries_to_be_added with
-  | nil => entry_list
-  | cons entry remaining_entries => 
-      insert_Entries_aux remaining_entries (insert_Entry_aux entry entry_list comp_func) comp_func
-  end.
+Definition get_entry_id (entry : Entry) : RT CNat :=
+  ret (id entry).
+
+Definition get_entry_delete (entry : Entry) : RT CNat :=
+  ret (del entry).
+
+Definition decrease_del (entry : Entry) : Entry :=
+  (fun e =>
+  {|
+      id := e.(id);
+      cnt := e.(cnt);
+      del := pred e.(del)
+  |}) entry.
+
+Definition decrease_cnt (entry : Entry) : Entry :=
+  (fun e =>
+  {|
+      id := e.(id);
+      cnt := pred e.(cnt);
+      del := e.(del)
+  |}) entry.
+
+Definition cmp_entry_deadline (entry1 entry2 : Entry) : CBool :=
+  Nat.leb
+    (Jobs(entry1.(id))).(deadline)
+    (Jobs(entry2.(id))).(deadline).
+
+Definition make_entry (id : CNat) (cnt : CNat) (del : CNat) : RT Entry :=
+  ret (mk_Entry id cnt del).

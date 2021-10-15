@@ -16,11 +16,9 @@ C_TASK_DIR=$(C_PARTITION_DIR)/task
 
 # Coq sources related directories
 COQ_SRC_DIR=$(SRC_DIR)/coq
-#COQ_MAIN_DIR=$(COQ_SRC_DIR)/main #Not yet used
-COQ_MOCKUP_DIR=$(COQ_SRC_DIR)/mockup
-COQ_PARTITION_MOCKUP_DIR=$(COQ_MOCKUP_DIR)/partition
-COQ_SCHEDULING_MOCKUP_DIR=$(COQ_MOCKUP_DIR)/scheduling
 COQ_MODEL_DIR=$(COQ_SRC_DIR)/model
+COQ_INTERFACE_MODEL_DIR=$(COQ_MODEL_DIR)/Interface
+COQ_TYPES_MODEL_DIR=$(COQ_INTERFACE_MODEL_DIR)/Types
 COQ_SCHEDULER_DIR=$(COQ_SRC_DIR)/scheduler
 COQ_EXTRACTION_DIR=$(COQ_SRC_DIR)/extraction
 
@@ -35,10 +33,9 @@ BUILD_DIR=build
 #####################################################################
 
 # Coq source files
-COQ_SRC_FILES=$(foreach dir, $(COQ_MAIN_DIR)\
-                             $(COQ_MODEL_DIR)\
-                             $(COQ_PARTITION_MOCKUP_DIR)\
-                             $(COQ_SCHEDULING_MOCKUP_DIR)\
+COQ_SRC_FILES=$(foreach dir, $(COQ_MODEL_DIR)\
+                             $(COQ_INTERFACE_MODEL_DIR)\
+                             $(COQ_TYPES_MODEL_DIR)\
                              $(COQ_SCHEDULER_DIR),\
                    $(wildcard $(dir)/*.v)\
                )
@@ -49,7 +46,7 @@ COQ_EXTRACTION_FILES=$(wildcard $(COQ_EXTRACTION_DIR)/*.v)
 COQ_PROOF_FILES=$(wildcard $(COQ_PROOF_DIR)/*.v)
 
 # Common C source files
-C_GENERATED_SRC=$(BUILD_DIR)/EDF.c
+C_GENERATED_SRC=$(BUILD_DIR)/ElectionFunction.c
 C_INTERFACE_IMPL_SRC=$(wildcard $(C_INTERFACE_IMPL_DIR)/*.c)
 
 # Common C header files
@@ -90,7 +87,7 @@ TASK_BIN=$(BUILD_DIR)/task.bin
 PIP_OBJ=$(AS_PARTITION_PIP_OBJ) $(C_GENERATED_PIP_OBJ) $(C_INTERFACE_IMPL_PIP_OBJ) $(C_PARTITION_PIP_OBJ)
 
 # Jsons (Coq extracted AST)
-JSONS=EDF.json CNat.json CBool.json CRet.json State.json Primitives.json Jobs.json Entry.json JobSet.json
+JSONS=ElectionFunction.json CNat.json CBool.json CRet.json State.json Oracles.json Jobs.json Entry.json JobSet.json
 JSONS:=$(patsubst %,$(BUILD_DIR)/%, $(JSONS))
 
 MAKEFLAGS+=-j
@@ -124,17 +121,17 @@ coq_code_extraction : Makefile.coq | $(BUILD_DIR)
 # All jsons are generated once Extraction.v is compiled
 $(JSONS) &: coq_code_extraction ;
 
-$(BUILD_DIR)/EDF.c: $(JSONS)
-	$(DIGGER) -m Monad -m AbstractTypes -m Datatypes -M coq_RT\
+$(BUILD_DIR)/ElectionFunction.c: $(JSONS)
+	$(DIGGER) -m Monad -m TypesModel -m Datatypes -M coq_RT\
 		  -d CNat:$(BUILD_DIR)/CNat.json -q CNat.h\
 		  -d CBool:$(BUILD_DIR)/CBool.json -q CBool.h\
 		  -d CRet:$(BUILD_DIR)/CRet.json -q CRet.h\
 		  -d State:$(BUILD_DIR)/State.json -q State.h\
-		  -d Primitives:$(BUILD_DIR)/Primitives.json -q Primitives.h\
+		  -d Oracles:$(BUILD_DIR)/Oracles.json -q Oracles.h\
 		  -d Jobs:$(BUILD_DIR)/Jobs.json -q Jobs.h\
 		  -d Entry:$(BUILD_DIR)/Entry.json -q Entry.h\
 		  -d JobSet:$(BUILD_DIR)/JobSet.json -q JobSet.h\
-		  -o $(BUILD_DIR)/EDF.c $(BUILD_DIR)/EDF.json
+		  -o $(BUILD_DIR)/ElectionFunction.c $(BUILD_DIR)/ElectionFunction.json
 
 ###################### Partition mockup compilation rules #######################
 

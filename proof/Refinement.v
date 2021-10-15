@@ -5,10 +5,10 @@ Require Import Omega.
 Require Import Lia.
 Require Import FunctionalExtensionality.
 From Scheduler.Proof Require Import Lib Assumptions JobsAxioms EdfPolicy FunctionalEdf Hoare EdfPolicy.
-From Scheduler.Model Require Import Monad AbstractTypes AbstractFunctions.
-From Scheduler.SchedulerMockup Require Import Jobs Entry JobSet CNat CBool CRet State.
-From Scheduler.PartitionMockup Require  Import Primitives.
-From Scheduler Require  Import EDF.
+From Scheduler.Model Require Import Monad  PureFunctionModels.
+From Scheduler.Model.Interface Require Import Oracles.
+From Scheduler.Model.Interface.Types Require Import TypesModel Jobs Entry JobSet CNat CBool CRet State.
+From Scheduler Require Import ElectionFunction.
 
 
 Module FunctionalEdfWithFuelMod(J : JobsAxiomsMod).

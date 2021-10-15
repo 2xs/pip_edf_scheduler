@@ -28,7 +28,7 @@
 (* This Coq module defines a simple state monad with failure, as an
    example of use of digger to extract some monadic code into C code *)
 
-From Scheduler.Model Require Import AbstractTypes.
+From Scheduler.Model.Interface.Types Require Import TypesModel.
 
 Require Import FunctionalExtensionality.
 

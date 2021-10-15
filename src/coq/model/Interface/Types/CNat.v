@@ -25,14 +25,24 @@
  * knowledge of the CeCILL license and that you accept its terms.
  *)
 
-(* This Coq module uses the monad defined in the Monad module to
-   describe sequential computations. *)
-
 From Scheduler.Model Require Import Monad.
-From Scheduler.PartitionMockup Require Import PipTypes.
-From Scheduler.EDF Require Import EDF.
+From Scheduler.Model.Interface.Types Require Import TypesModel.
 
-(** Entrypoint *)
-Definition main (bootinfo : pip_fpinfo_ptr) : RT unit :=
-  do scheduled_partition <- scheduler ;
-  ret tt.
+Parameter default_nat : CNat.
+Parameter is_default_nat : CNat -> RT CBool.
+
+Definition zero : CNat := 0.
+
+Definition sub (n1 : CNat) (n2 : CNat) : RT CNat :=
+  ret (n1-n2).
+
+Definition succ (n : CNat) : RT CNat :=
+  ret (S(n)).
+
+Definition pred (n : CNat) : RT CNat :=
+  ret (pred n).
+
+Definition eqb (n1 n2 : CNat) : RT CBool :=
+  ret (Nat.eqb n1 n2).
+
+(* TODO : refléter les entiers C plutot que les entiers naturels *)

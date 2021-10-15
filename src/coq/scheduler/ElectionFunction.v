@@ -26,15 +26,8 @@
  *)
 
 From Scheduler.Model Require Import Monad.
-From Scheduler.Model Require Import AbstractTypes.
-From Scheduler.SchedulerMockup Require Import Jobs.
-From Scheduler.SchedulerMockup Require Import Entry.
-From Scheduler.SchedulerMockup Require Import JobSet.
-From Scheduler.SchedulerMockup Require Import CNat.
-From Scheduler.SchedulerMockup Require Import CBool.
-From Scheduler.SchedulerMockup Require Import CRet.
-From Scheduler.SchedulerMockup Require Import State.
-From Scheduler.PartitionMockup Require Import Primitives.
+From Scheduler.Model.Interface Require Import Oracles.
+From Scheduler.Model.Interface.Types Require Import TypesModel Jobs Entry JobSet CNat CBool CRet State.
 
 (** Computations made during the election of the next Job to schedule *)
 

@@ -4,13 +4,13 @@ Require Import Coq.Bool.Bool.
 Require Import Omega.
 Require Import Lia.
 From Scheduler.Proof Require Import Lib Assumptions JobsAxioms EdfPolicy FunctionalEdf Hoare EdfPolicy Refinement.
-From Scheduler.Model Require Import Monad AbstractTypes AbstractFunctions.
-From Scheduler.SchedulerMockup Require Import Jobs.
-From Scheduler Require Import EDF.
+From Scheduler.Model Require Import Monad PureFunctionModels.
+From Scheduler.Model.Interface.Types Require Import TypesModel Jobs.
+From Scheduler Require Import ElectionFunction.
 
 Module MonadicEdfMod (J :JobsAxiomsMod).
- Import J.
-  
+Import J.
+
 Module F:= FunctionalEdfImplementsAssumptionsMod J.
 Import F. 
 

@@ -27,9 +27,9 @@
 
 (* /!\ Proof related content on Jobs are located in proof/JobsAxioms.v *)
 
-From Scheduler.Model Require Import AbstractFunctions.
-From Scheduler.Model Require Import AbstractTypes.
-From Scheduler.SchedulerMockup Require Import Jobs.
+From Scheduler.Model Require Import PureFunctionModels.
+From Scheduler.Model.Interface.Types Require Import TypesModel.
+From Scheduler.Model.Interface.Types Require Import Jobs.
 Require Import List.
 Module Type JobsAxiomsMod.
 
