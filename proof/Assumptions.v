@@ -1,7 +1,7 @@
 Require Import List.
 Import ListNotations.
-Require Import Omega.
 Require Import Lia.
+Require Import Coq.Arith.PeanoNat.
 
 From Scheduler.Model Require Import PureFunctionModels.
 From Scheduler.Model.Interface.Types Require Import TypesModel Jobs.

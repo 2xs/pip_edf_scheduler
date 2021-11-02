@@ -1,7 +1,6 @@
 Require Import List.
 Import ListNotations.
 Require Import Coq.Bool.Bool.
-Require Import Omega.
 Require Import Lia.
 From Scheduler.Proof Require Import Lib Assumptions JobsAxioms EdfPolicy FunctionalEdf Hoare EdfPolicy Refinement.
 From Scheduler.Model Require Import Monad PureFunctionModels.

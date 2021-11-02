@@ -1,11 +1,9 @@
 Require Import List.
 Import ListNotations.
-Require Import Coq.Arith.Compare_dec.
-Require Import Coq.Arith.Peano_dec.
-Require Import  Coq.Numbers.Natural.Peano.NPeano.
-Require Import Coq.Bool.Bool.
-Require Import Omega.
 Require Import Lia.
+Require Import Coq.Numbers.Natural.Peano.NPeano.
+Require Import Coq.Bool.Bool.
+From Coq.Arith Require Import Compare_dec Peano_dec Minus Plus Wf_nat.
 
 From Scheduler.Model Require Import PureFunctionModels.
 From Scheduler.Proof Require Import Lib Assumptions JobsAxioms.
@@ -15,10 +13,8 @@ Module EdfPolicyMod (J : JobsAxiomsMod) (Assms : AssumptionsMod J).
   Import J.
   Import Assms.
 
-
   Definition idleAt ( t : nat) := bforall (fun i => negb (run  i t)) N.
 
-  
   Definition countersAt(t : nat) :=
     generic_sum (fun i => c i t) (fun _ => true) 0 N.
 
@@ -37,10 +33,10 @@ Module EdfPolicyMod (J : JobsAxiomsMod) (Assms : AssumptionsMod J).
       apply negb_inj.
       apply Hidle ; auto.
 Qed.
-  
+
   Lemma notidleAt_runAt : forall t,
       idleAt  t = false ->
-      exists i, i < N /\ run i t = true /\ 
+      exists i, i < N /\ run i t = true /\
          forall j, j < N -> j <> i -> run  j t = false.
   Proof.
     unfold countersAt, idleAt ; intros.
@@ -52,12 +48,12 @@ Qed.
     intros.
     generalize (at_most_one_runs _ _ _ HxN H Hnegb) ; intro Habs.
     case_eq (run  j t) ; intro Hcas ; try reflexivity.
-    rewrite Habs in H0 ; auto ; exfalso ; apply H0 ; reflexivity.   
+    rewrite Habs in H0 ; auto ; exfalso ; apply H0 ; reflexivity.
   Qed.
 
   Lemma runAt_countersAt :
-    forall t, 
-      (exists i, i < N /\ run i t = true /\ 
+    forall t,
+      (exists i, i < N /\ run i t = true /\
          forall j, j < N -> j <> i -> run j t = false) ->
       S (countersAt  (S t)) = countersAt  t.
   Proof.
@@ -74,12 +70,12 @@ Qed.
                      (fun _ : nat => true) (S i) N).
       {
         replace (S
-    (generic_sum (fun i0 : nat => c i0 t) 
+    (generic_sum (fun i0 : nat => c i0 t)
        (fun _ : nat => true) 0 i + c  i (S t) +
-     generic_sum (fun i0 : nat => c i0 t) 
+     generic_sum (fun i0 : nat => c i0 t)
        (fun _ : nat => true) (S i) N))
           with
-     (generic_sum (fun i0 : nat => c  i0 t) 
+     (generic_sum (fun i0 : nat => c  i0 t)
        (fun _ : nat => true) 0 i + S (c  i (S t)) +
      generic_sum (fun i0 : nat => c  i0 t)
                  (fun _ : nat => true) (S i) N).
@@ -88,7 +84,7 @@ Qed.
           {
             destruct (c_decreases_when_running  _ _ HiN Hruntrue).
             lia.
-          }  
+          }
           rewrite H; auto.
 
         }
@@ -119,7 +115,7 @@ Qed.
      generalize (notidleAt_countersAt_aux  _ Hidle) ; intro Haux.
      lia.
    Qed.
-   
+
    Lemma notidleAt_countersAt : forall t,
       idleAt  t = false ->  countersAt (S t) = countersAt t -1.
    Proof.
@@ -127,9 +123,8 @@ Qed.
      generalize (notidleAt_countersAt_aux  _ Hidle) ; intro Haux.
      lia.
   Qed.
-   
+
   Definition idle( l r : nat) := generic_sum (fun _ => 1) (idleAt ) l r.
-  
 
   Lemma idle_idleAt_grows : forall  l r,
       l <= r ->  idleAt r = true -> idle  l (S r) = S (idle l r).
@@ -151,7 +146,6 @@ Qed.
     reflexivity.
   Qed.
 
- 
   Lemma idle_mono :  forall  l r, l <= r ->  idle  l r <= idle  l (S r).
   Proof.
     intros  l r Hle.
@@ -159,7 +153,6 @@ Qed.
     * rewrite idle_idleAt_grows; auto.
     * rewrite idle_notidleAt_stays; auto.
   Qed.
-
 
   Lemma idle_le_interval : forall l r, l <= r -> idle  l r <= r - l.
   Proof.
@@ -173,7 +166,7 @@ Qed.
     +  rewrite idle_notidleAt_stays; auto; lia.
  Qed.
 
- Lemma countersAt_interval :  forall l r, l <= r -> countersAt r <= countersAt  l. 
+ Lemma countersAt_interval :  forall l r, l <= r -> countersAt r <= countersAt  l.
  Proof.
    intros l r Hle.
    induction Hle; auto.
@@ -194,10 +187,10 @@ Qed.
     *  case_eq (idleAt  m); intro Hidle.
      +  rewrite idle_idleAt_grows, idleAt_countersAt; auto.
         rewrite <- IHHle.
-        clear ;  lia.      
+        clear ;  lia.
      + rewrite idle_notidleAt_stays ; auto.
        rewrite  notidleAt_countersAt; auto.
-      
+
        replace (countersAt  l - (countersAt  m - 1)) with
            (S (countersAt  l - countersAt  m )).
        -  generalize (countersAt_interval _ _ Hle); intro Hle0.
@@ -207,16 +200,15 @@ Qed.
           ** rewrite IHHle; reflexivity.
           ** rewrite subs1; auto.
              rewrite IHHle; lia.
-           
        - generalize (notidleAt_countersAt_gt_0  m Hidle); intro Hgt0.
          generalize (countersAt_interval  _ _ Hle); intro Hle0.
-         lia.    
+         lia.
  Qed.
 
 
   Lemma idle_lem : forall  l r,
       l <= r -> idle  l r = r - l - ((countersAt l) - (countersAt r)).
-  Proof.  
+  Proof.
     intros  l r Hle.
     generalize (idle_lem_aux  _ _ Hle); intro Haux.
     generalize (countersAt_interval  _ _ Hle); intro Hle0.
@@ -224,19 +216,16 @@ Qed.
     assert (r - l - idle  l r + idle  l r =  countersAt  l - countersAt  r + idle l r).
     * rewrite Haux; auto.
     * rewrite NPeano.Nat.sub_add in H ; auto.
-      rewrite H.   
+      rewrite H.
       rewrite minus_plus; auto.
-  Qed.      
-  
-  
-  
+  Qed.
+
   Definition laterAt (t  r: nat) :=
     bexists (fun i => andb (run  i t) (r <? deadline(Jobs i) )) N.
 
   Definition ctrs_laterAt(t r : nat) :=
     generic_sum (fun i => c i t) (fun i =>  (r <? deadline(Jobs i) )) 0 N.
 
-    
   Lemma not_laterAt_ctrs : forall t r,
       laterAt t r = false ->
       ctrs_laterAt (S t) r = ctrs_laterAt  t r.
@@ -252,8 +241,6 @@ Qed.
       rewrite Hdead in Hlater.
       rewrite  andb_false_iff in Hlater; intuition; discriminate.
  Qed.
- 
-
 
   Lemma laterAt_runAt : forall t r,
       laterAt  t r = true ->
@@ -264,18 +251,18 @@ Qed.
     destruct (bexists_exists _ _ H) as (i & HxN & Hnegb);
       clear H.
     rewrite andb_true_iff in Hnegb ; destruct Hnegb.
-    
+
     exists i ; repeat split ; auto.
     intros.
     generalize (at_most_one_runs  _ _ _ HxN H1 H); intro Habs.
     case_eq (run  j t) ; intro Hcas ; try reflexivity.
-    rewrite Hcas in Habs ; auto ; exfalso ; apply H2; rewrite Habs; reflexivity.   
+    rewrite Hcas in Habs ; auto ; exfalso ; apply H2; rewrite Habs; reflexivity.
   Qed.
 
-  
+
   Lemma runAt_ctrs_laterAt :
-    forall t r, 
-      (exists i, i < N /\ run  i t = true /\ r <? deadline(Jobs i)  = true /\ 
+    forall t r,
+      (exists i, i < N /\ run  i t = true /\ r <? deadline(Jobs i)  = true /\
          forall j, j < N -> j <> i -> run  j t = false) ->
       S ( ctrs_laterAt  (S t) r) =  ctrs_laterAt t r.
   Proof.
@@ -316,7 +303,7 @@ Qed.
           {
             destruct (c_decreases_when_running  _ _ HiN Hruntrue).
             lia.
-          }  
+          }
           rewrite H; auto.
 
         }
@@ -352,11 +339,11 @@ Qed.
     intros; symmetry; rewrite <- laterAt_ctrs_aux; auto; lia.
   Qed.
 
-  
+
   Definition later ( r' l r : nat) :=
     generic_sum (fun _ => 1) (fun t => laterAt  t r') l r.
 
-  
+
   Lemma laterAt_later_grows : forall  l r r' ,
       l <= r ->  laterAt  r r' = true -> later r' l (S r) = S (later r' l r).
   Proof.
@@ -377,7 +364,6 @@ Qed.
     reflexivity.
   Qed.
 
- 
   Lemma later_mono :  forall  l r r' , l <= r ->  later r' l r <= later r' l (S r).
   Proof.
     intros l r r' Hle.
@@ -399,7 +385,7 @@ Qed.
  Qed.
 
   Lemma ctrs_laterAt_interval :
-    forall l r r', l <= r -> ctrs_laterAt r r'  <= ctrs_laterAt l r' . 
+    forall l r r', l <= r -> ctrs_laterAt r r'  <= ctrs_laterAt l r'.
  Proof.
    intros l r r' Hle.
    induction Hle; auto.
@@ -409,8 +395,6 @@ Qed.
  Qed.
 
 
-
-  
   Lemma later_lem : forall  l r r',
       l <= r ->
       later r' l r =  ctrs_laterAt l r' -  ctrs_laterAt r r'.
@@ -427,16 +411,12 @@ Qed.
     + rewrite not_laterAt_ctrs, notLaterAt_later_stays ; auto.
   Qed.
 
-
-  
-  
   Definition earlyAt (t  r: nat) :=
     bexists (fun i => andb (run  i t) (deadline(Jobs i) <=? r )) N.
 
   Definition ctrs_earlyAt( t r : nat) :=
     generic_sum (fun i => c  i t) (fun i =>  (deadline(Jobs i) <=? r )) 0 N.
 
-    
   Lemma not_earlyAt_ctrs : forall  t r,
       earlyAt  t r = false ->
       ctrs_earlyAt (S t) r = ctrs_earlyAt  t r.
@@ -452,8 +432,6 @@ Qed.
       rewrite Hdead in Hearly.
       rewrite  andb_false_iff in Hearly; intuition; discriminate.
  Qed.
- 
-
 
   Lemma earlyAt_runAt : forall t r,
       earlyAt  t r = true ->
@@ -464,15 +442,15 @@ Qed.
     destruct (bexists_exists _ _ H) as (i & HxN & Hnegb);
       clear H.
     rewrite andb_true_iff in Hnegb ; destruct Hnegb.
-    
+
     exists i ; repeat split ; auto.
     intros.
     generalize (at_most_one_runs  _ _ _ HxN H1 H); intro Habs.
     case_eq (run  j t) ; intro Hcas ; try reflexivity.
-    rewrite Hcas in Habs ; auto ; exfalso ; apply H2; rewrite Habs; reflexivity.  
+    rewrite Hcas in Habs ; auto ; exfalso ; apply H2; rewrite Habs; reflexivity.
   Qed.
 
-  
+
   Lemma runAt_ctrs_earlyAt :
     forall t r, 
       (exists i, i < N /\ run i t = true /\ deadline(Jobs i) <=? r = true /\ 
@@ -552,11 +530,11 @@ Qed.
     intros; symmetry; rewrite <- earlyAt_ctrs_aux; auto; lia.
   Qed.
 
-  
+
   Definition early ( r' l r : nat) :=
     generic_sum (fun _ => 1) (fun t => earlyAt t r') l r.
 
-  
+
   Lemma earlyAt_early_grows : forall  l r r' ,
       l <= r ->  earlyAt r r' = true -> early  r' l (S r) = S (early r' l r).
   Proof.
@@ -577,7 +555,7 @@ Qed.
     reflexivity.
   Qed.
 
- 
+
   Lemma early_mono :  forall  l r r' , l <= r ->  early r' l r <= early r' l (S r).
   Proof.
     intros  l r r' Hle.
@@ -599,7 +577,7 @@ Qed.
  Qed.
 
   Lemma ctrs_earlyAt_interval :
-    forall l r r', l <= r -> ctrs_earlyAt r r'  <= ctrs_earlyAt l r' . 
+    forall l r r', l <= r -> ctrs_earlyAt r r'  <= ctrs_earlyAt l r' .
  Proof.
    intros l r r' Hle.
    induction Hle; auto.
@@ -609,7 +587,6 @@ Qed.
  Qed.
 
 
-  
   Lemma early_lem : forall  l r r',
       l <= r ->
       early r' l r =  ctrs_earlyAt l r' -  ctrs_earlyAt r r'.
@@ -639,7 +616,7 @@ Qed.
     replace true with (negb false) in Hbfor; auto.
     apply negb_inj ; auto.
   Qed.
-  
+
   Lemma idle_not_later :  forall  t r,
       idleAt  t = true -> laterAt  t r = false.
    Proof.
@@ -715,20 +692,20 @@ Qed.
       rewrite (Hij Hcas) in H0.
       rewrite PeanoNat.Nat.leb_gt; auto.
    *  left; auto.
-  Qed.                                                  
+  Qed.
 
   Lemma not_idle_not_later_early : forall t r,
     idleAt t  = false ->
     laterAt t r = false ->
     earlyAt t r = true.
   Proof.
-  unfold idleAt, laterAt, earlyAt.  
-  intros t r Hidle Hlater.    
+  unfold idleAt, laterAt, earlyAt.
+  intros t r Hidle Hlater.
   apply exists_bexists.
   apply notbforall_exists in Hidle.
-  destruct Hidle as (i & HiN & Hrun). 
+  destruct Hidle as (i & HiN & Hrun).
   apply notbexists_forall with (i :=i) in Hlater; auto.
-  rewrite andb_false_iff in Hlater.   
+  rewrite andb_false_iff in Hlater.
   destruct Hlater as [Hlater | Hlater ].
   * rewrite Hlater in Hrun ;  discriminate.
   * exists i ; repeat split ; auto.
@@ -751,7 +728,7 @@ Qed.
      case_eq (idleAt  m) ; intro Hidle.
      { generalize (idle_not_early  _ r' Hidle) ; intro Hear.
        generalize (idle_not_later  _ r' Hidle) ; intro Hlat.
-       rewrite  idleAt_countersAt in *; auto.  
+       rewrite  idleAt_countersAt in *; auto.
        rewrite not_laterAt_ctrs ; auto.
        rewrite not_earlyAt_ctrs ; auto.
        rewrite <- idle_lem, <- later_lem, <- early_lem in *; auto.
@@ -759,7 +736,7 @@ Qed.
        rewrite <- idle_lem_aux; auto.
        rewrite IHHle.
        lia; auto.
-   }   
+   }
    { case_eq (laterAt m r') ; intro Hlat.
      { generalize ( later_not_early  _ _ Hlat) ; intro Hear.
         rewrite  notidleAt_countersAt in *; auto. 
@@ -767,7 +744,7 @@ Qed.
         rewrite not_earlyAt_ctrs in *; auto.
         rewrite <- idle_lem, <- later_lem, <- early_lem in *; auto.
         replace (S m - l) with (S (m -l)) ; [| lia].
-       
+
         rewrite IHHle.
         replace (countersAt  l - (countersAt  m - 1)) with
             (S (countersAt l - countersAt m)).
@@ -814,12 +791,10 @@ Qed.
         generalize (countersAt_interval _ _  Hle);
                intro Hc'.
         lia.
-     }  
-   }   
+     }
+   }
   Qed.
-  
 
-  
   Definition waiting(i t : nat)  :=
     i < N /\ arrival (Jobs i) <= t /\ c i t > 0 /\ run i t = false.
 
@@ -833,12 +808,11 @@ Qed.
 
   Definition EdfPolicyUpTo(r : nat) :=
      forall i t, i < N -> t <= r -> run  i t = true ->
-      forall (j : nat),  
+      forall (j : nat),
         waiting  j t -> deadline (Jobs i) <= deadline (Jobs j).
-  
-  Definition EdfPolicy := forall r, EdfPolicyUpTo  r.                         
-  
-  
+
+  Definition EdfPolicy := forall r, EdfPolicyUpTo  r.
+
   Definition DBF( l r : nat) :nat :=
     generic_sum
       (fun i => duration (Jobs i))
@@ -851,7 +825,7 @@ Qed.
                             fun i =>  (deadline(Jobs i) <=? r)) 0 N
     = idle l r + later  r l r + 
              generic_sum (fun i => c i l)
-                         (fun i =>  (deadline(Jobs i) <=? r)) 0 N. 
+                         (fun i =>  (deadline(Jobs i) <=? r)) 0 N.
   Proof.
     intros l r Hle.
     rewrite  idle_later_early with (r' := r); auto.
@@ -860,7 +834,7 @@ Qed.
     rewrite plus_comm.
     rewrite early_lem; auto.
     erewrite le_plus_minus; eauto.
-    apply ctrs_earlyAt_interval ; auto.          
+    apply ctrs_earlyAt_interval ; auto.
 Qed.
 
 
@@ -886,7 +860,7 @@ Qed.
     * apply  generic_sum_split ; auto with arith.
     * apply generic_sum_filter_eq ; auto with arith.
       intros.
-      
+
       assert (Heq :  negb (arrival (Jobs k) <? l) =  (l <=? arrival (Jobs k))).
      + case_eq (l <=? arrival (Jobs k)); intro Hcas.
         - rewrite leb_le in Hcas.
@@ -912,8 +886,6 @@ Qed.
     eapply  c_is_duration_upto_arrival; eauto.
   Qed.
 
- 
-
  Lemma eq3 :  forall  l r, l <= r ->
       r - l +  generic_sum (fun i => c i r) (
                              fun i =>  (deadline(Jobs i) <=? r)) 0 N
@@ -926,9 +898,8 @@ Qed.
     (* repeat rewrite <- plus_assoc ; auto.
     rewrite Nat.add_cancel_l.*)
     rewrite <- eq3_aux, eq2_aux;  lia.
-  Qed. 
+  Qed.
 
-  
   Lemma min_eq3_aux :  forall l r,
       l <= r ->
       exists l',
@@ -955,7 +926,7 @@ Qed.
       l <= r ->   EdfPolicyUpTo r ->
       exists l', l' <= l /\ idle  l' r = idle l r /\ later r l' r = later r l r /\
          r - l' + ctrs_earlyAt r r = idle l r + later r l r + DBF l' r .
-  Proof.      
+  Proof.
     intros  l r Hle Hedf.
     destruct (min_eq3_aux _ _ Hle) as  (y & (Hly & Hi & Hl) & Hz).
     exists y ; repeat split ; auto.
@@ -1014,7 +985,7 @@ Qed.
                {
                  apply  generic_sum_filter_ge; auto with arith.
                }
-             lia.  
+             lia.
              }
             destruct Hex as ( j & HjN & Hrun).
 
@@ -1053,9 +1024,9 @@ Qed.
                     rewrite andb_true_iff in Hk.
                     destruct Hk as (Hded & Harr).
                     unfold EdfPolicyUpTo in Hedf.
-                    
+
                     assert (Hyr : y <= r) ; try lia.
-                    
+
                     specialize (Hedf  j y HjN Hyr Hrun k).
                     unfold waiting in Hedf.
                     case_eq (run  k y); intro Hcas.
@@ -1072,20 +1043,19 @@ Qed.
                          [apply Hedf; repeat split ; auto|].
                         rewrite leb_le in Hded.
                     rewrite  NPeano.Nat.ltb_ge; auto; lia.
-                    
+
                **   left.
                     generalize (at_most_one_runs  _ _ y HiN HjN); intro Htm.
                     rewrite Hrun in Htm ; cbn in Htm.
                     case_eq (run  i y) ; intro Hcas; auto.
                     rewrite Htm in n0; auto ; lia.
-            
+
            }
            {
              apply generic_sum_filter_eq ; auto with arith.
            }
    Qed.
 
- 
   Definition overdue(i t : nat) :=
     i < N /\ c i t > 0 /\ deadline(Jobs i) <= t.
 
@@ -1152,7 +1122,7 @@ Qed.
     unfold waiting in Hedf.
     assert (Hded' : deadline (Jobs j) <=  deadline (Jobs i));
       [ apply Hedf; repeat split; auto |].
-     case (Nat.eq_dec i0 j); intros ; subst.         
+     case (Nat.eq_dec i0 j); intros ; subst.
       -  right.
          rewrite NPeano.Nat.ltb_ge ; lia.
       -   case_eq (run i0 r) ; intros ; auto.
@@ -1160,16 +1130,13 @@ Qed.
        assert (j = i0); [eapply at_most_one_runs; eauto |]; subst; lia.
   Qed.
 
-  
   Definition feasible := forall l r,l <= r -> DBF l r <= r - l.
 
-
-  
   Theorem EdfPolicyMainTheorem :
     feasible ->
     forall ( i r: nat),
       EdfPolicyUpTo  r -> ~overdue  i r.
-  Proof.  
+  Proof.
    intros Hsched  i r Hedf Hover.
    generalize (overdue_not_idle  _ _ Hover) ; intro HidleAt.
    generalize (overdue_not_later  _ _ Hover Hedf) ; intro HlaterAt.
@@ -1186,4 +1153,4 @@ Qed.
    lia.
  Qed.
 
-End EdfPolicyMod.       
+End EdfPolicyMod.

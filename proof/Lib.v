@@ -1,9 +1,10 @@
 Require Import Coq.Arith.Compare_dec.
 Require Import Coq.Arith.Peano_dec.
+Require Import Coq.Arith.Plus.
+Require Import Coq.Arith.Minus.
 Require Import  Coq.Numbers.Natural.Peano.NPeano.
 (* Require Import  Coq.Arith.PeanoNat.*)
 Require Import Coq.Bool.Bool.
-Require Import Omega.
 Require Import Lia.
 Require Import Coq.Wellfounded.Wellfounded.
 Require Import Classical.

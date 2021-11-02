@@ -1,9 +1,11 @@
 Require Import List.
 Import ListNotations.
 Require Import Coq.Bool.Bool.
-Require Import Omega.
 Require Import Lia.
 Require Import FunctionalExtensionality.
+
+From Coq.Arith Require Import Compare_dec EqNat PeanoNat.
+
 From Scheduler.Proof Require Import Lib Assumptions JobsAxioms EdfPolicy FunctionalEdf Hoare EdfPolicy.
 From Scheduler.Model Require Import Monad  PureFunctionModels.
 From Scheduler.Model.Interface Require Import Oracles.
@@ -65,7 +67,7 @@ Qed.
 
 Definition functional_update_entries_fuel(s:State) : ((option nat *bool)* State) :=
   let  l :=
-     filter (fun j =>  j <? N) (jobs_arriving_at s.(now))  in                                     
+     filter (fun j =>  j <? N) (jobs_arriving_at s.(now)) in
 let b := 
      match hd_error s.(active) with
      | Some e =>
@@ -73,10 +75,10 @@ let b :=
          (cnt e <=? budget j - duration j)
      | None => false
      end
-in             
+in
 let active1 := if b  then tl s.(active) else s.(active) in
 let active2 :=
-       functional_insert_new_entries_fuel N  l  active1  in
+       functional_insert_new_entries_fuel N  l  active1 in
 
 ( match active2 with
      | [] => (None,false)
@@ -84,7 +86,7 @@ let active2 :=
   end,  mk_State  s.(now) active2).
 
 
-Lemma  functional_update_entries_enough_fuel : forall s, 
+Lemma  functional_update_entries_enough_fuel : forall s,
   functional_update_entries s = functional_update_entries_fuel s.
 Proof.
 intros s.
@@ -105,7 +107,7 @@ Qed.
 Definition functional_scheduler_fuel  (s: State)  :=
   let (r,s')  := functional_update_entries_fuel  s in
   let (_,s'') := functional_update_counters  s' in
-  (r,s'').                
+  (r,s'').
 
 Lemma functional_scheduler_enough_fuel  : forall s,
     functional_scheduler_fuel s = functional_scheduler s.
@@ -147,9 +149,9 @@ End FunctionalEdfWithFuelMod.
 
 Module RefinementMod (J :JobsAxiomsMod).
  Import J.
-  
+
 Module F:= FunctionalEdfImplementsAssumptionsMod J.
-Import F. 
+Import F.
 
 Module FF := FunctionalEdfWithFuelMod J.
 Import FF.
@@ -161,7 +163,7 @@ Definition E :  Env := (fun k =>
                                     (Jobs j).(arrival)
                                     (Jobs j).(duration)
                                     (Jobs j).(budget)
-                                    (Jobs j).(deadline))          
+                                    (Jobs j).(deadline))
                                 (jobs_arriving_at k))).
 (* decomposing the update_entry function in 3 smaller units *)
 
@@ -180,7 +182,7 @@ remember (active s) as acs.
 destruct acs.
 * injection Hri ; intros ; subst; auto.
 *rewrite <- Heqacs in Hri.
-  cbn in Hri.  
+  cbn in Hri.
   injection Hri ; intros ; subst.
   remember ( (cnt e =? zero) ) as b'.
   destruct b' ; symmetry in Heqb'.
@@ -195,7 +197,6 @@ destruct acs.
     apply orb_false_r.
 Qed.
 
-    
   Definition update_first_entry (finished expired : CBool) :=
   do finished_or_expired <- or finished expired ;
   (if finished_or_expired then (* i remove its entry (NB the first one) from active list*)
@@ -225,7 +226,6 @@ Definition decomposed_update_entries :=
     insert_new_entries new_jobs ;;
     write_output
   end.
- 
 
 Lemma decomposition_correct :
      update_entries = decomposed_update_entries .
@@ -243,7 +243,7 @@ Qed.
 
 Definition functional_read_inputs (s : State) :=
     let  l :=
-     filter (fun j =>  j <? N) (jobs_arriving_at s.(now))  in                                     
+     filter (fun j =>  j <? N) (jobs_arriving_at s.(now))  in
 let b := 
      match hd_error s.(active) with
      | Some e =>
@@ -268,9 +268,6 @@ Definition functional_add_new_entries_fuel(s:State) (l : list nat) :=
  let active2 :=
        functional_insert_new_entries_fuel  N l s.(active) in
  (tt,mk_State s.(now) active2).
-
-
-
 
 
 Definition functional_write_output (s : State) :=
@@ -326,15 +323,15 @@ repeat f_equal ; auto.
    + cbn in *.
       rewrite <- Heqas0 in Heqrs1.
       injection Heqrs1; intros ; subst ; auto.
-* 
+*
    destruct as0.
    + injection Heqrs1 ; intros ; subst.
      cbn in *.
      rewrite <- Heqas0 in Heqrs2.
-     injection Heqrs2 ; intros ; subst; auto.   
-   +  
+     injection Heqrs2 ; intros ; subst; auto.
+   +
      cbn in *.
-      rewrite <- Heqas0 in *.     
+      rewrite <- Heqas0 in *.
       injection Heqrs1; intros ; subst.
       repeat rewrite <- Heqas0 in *.
       cbn in *.
@@ -346,9 +343,9 @@ Qed.
 Lemma update_first_entry_refinement :  forall b b' r s0 s,
     b || b' = b  -> update_first_entry b b' E s0 = (r,s) ->
     functional_update_first_entry s0 b b'  = (r,s).
-Proof.  
+Proof.
 intros b b'  r s0 s Hbb' Hu.
-unfold update_first_entry,  or, bind, ret in Hu.  
+unfold update_first_entry,  or, bind, ret in Hu.
 unfold functional_update_first_entry.
 rewrite Hbb' in Hu.
 destruct r.
@@ -362,18 +359,18 @@ Qed.
 Lemma insert_new_entries_now :   forall l r s0 s,
     insert_new_entries_aux N  l  E s0 = (r,s) -> now s0 = now s.
 Proof.
-  induction N ; intros l r s0 s Hins.  
+  induction N ; intros l r s0 s Hins.
   * cbn in Hins.
     injection Hins ; intros  ; subst ; auto.
   *  cbn in Hins.
      destruct l.
   +
     injection Hins ; intros ; subst; auto.
-  + 
+  +
      unfold get_first_job_id,  get_remaining_jobs, create_entry_from_job_id, get_job_from_job_id,
     get_budget, get_deadline, get_arrival, make_entry, sub, succ,
     cmp_entry_deadline,insert_new_active_entry,ret,bind in Hins.
-    cbn [tl] in Hins.    
+    cbn [tl] in Hins.
     remember  {|
            now := now s0;
            active := insert_Entry_aux
@@ -387,7 +384,7 @@ Proof.
                        (fun entry1 entry2 : Entry =>
                         deadline (Jobs (id entry1)) <=?
                         deadline (Jobs (id entry2))) |} as s1.
-    rewrite <-  (IHc0  _ _ _ _  Hins), Heqs1 ; auto.    
+    rewrite <-  (IHc0  _ _ _ _  Hins), Heqs1 ; auto.
 Qed.
 
 Lemma insert_entry_active : forall e l,
@@ -418,10 +415,9 @@ Proof.
   injection Hins ; intros ; subst;auto.
 * cbn in Hins.
   destruct l.
-  +  
+  +
         injection Hins ; intros ; subst ; auto.
   +
-    
     unfold get_first_job_id,  get_remaining_jobs, create_entry_from_job_id, get_job_from_job_id,
     get_budget, get_deadline, get_arrival, make_entry, sub, succ,
     cmp_entry_deadline,insert_new_active_entry,ret,bind in Hins.
@@ -446,13 +442,13 @@ Proof.
     cbn.
     apply insert_entry_active.
 Qed.
-    
+
 Lemma add_new_entries_refinement :  forall l r s0 s,
     insert_new_entries l E s0 = (r,s) ->
     functional_add_new_entries_fuel s0 l  = (r,s).
 Proof.
 intros l r s0 s Ha.
-destruct r.  
+destruct r.
 unfold functional_add_new_entries_fuel.
 f_equal.
 unfold insert_new_entries,
@@ -470,7 +466,7 @@ Lemma write_output_refinement :  forall r s0 s,
     functional_write_output s0   = (r,s).
 Proof.
 intros  r s0 s Hw.
-unfold functional_write_output.  
+unfold functional_write_output.
 unfold write_output, is_active_list_empty,make_ret_type,get_running ,get_first_active_entry, job_late, is_active_list_empty, get_first_active_entry, eqb,get_entry_delete,get_entry_id,bind,ret  in Hw.
 remember (active s0) as as0.
 destruct as0.
@@ -479,7 +475,7 @@ destruct as0.
   injection Hw ; intros ; subst.
   repeat (apply f_equal).
   destruct s ; f_equal ; auto.
-*   
+*
   repeat rewrite <- Heqas0 in Hw.
   cbn in Hw.
   repeat rewrite <- Heqas0 in Hw.
@@ -491,13 +487,13 @@ Qed.
 Lemma update_entries_refinement :  forall r s0 s,
    update_entries E s0 = (r,s) ->  functional_update_entries_fuel s0 = (r,s).
 Proof.
-intros r s0 s Hu.  
+intros r s0 s Hu.
 rewrite decomposition_correct in Hu.
 rewrite functional_decomposition_correct.
 unfold  decomposed_update_entries, bind, ret in Hu.
 unfold functional_decomposed_update_entries.
 rewrite <- Hu.
-clear Hu r s. 
+clear Hu r s.
 remember (functional_read_inputs s0) as fri.
 destruct fri as (r,s).
 remember (read_inputs E s0) as ri.
@@ -560,7 +556,7 @@ Qed.
 Lemma edf_refinement_fuel :  forall r s0 s,
    scheduler E s0 = (r,s) ->  functional_scheduler_fuel s0 = (r,s).
 Proof.
-unfold scheduler, functional_scheduler_fuel.  
+unfold scheduler, functional_scheduler_fuel.
 intros r s0 s Hs.
 remember (functional_update_entries_fuel s0) as fe.
 destruct fe as (r0,s').
@@ -586,8 +582,8 @@ Lemma edf_refinement :  forall r s0 s,
    scheduler E s0 = (r,s) ->  functional_scheduler s0 = (r,s).
 Proof.
  intros r s0 s Hs.
-apply edf_refinement_fuel in Hs.  
-rewrite <- functional_scheduler_enough_fuel ; auto. 
+apply edf_refinement_fuel in Hs.
+rewrite <- functional_scheduler_enough_fuel ; auto.
 Qed.
 
 End RefinementMod.
