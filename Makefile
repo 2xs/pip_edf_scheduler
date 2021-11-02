@@ -90,8 +90,6 @@ PIP_OBJ=$(AS_PARTITION_PIP_OBJ) $(C_GENERATED_PIP_OBJ) $(C_INTERFACE_IMPL_PIP_OB
 JSONS=ElectionFunction.json CNat.json CBool.json CRet.json State.json Oracles.json Jobs.json Entry.json JobSet.json
 JSONS:=$(patsubst %,$(BUILD_DIR)/%, $(JSONS))
 
-MAKEFLAGS+=-j
-
 #####################################################################
 ##                         Default target                          ##
 #####################################################################
