@@ -2,7 +2,6 @@
 #define __CNAT_H__
 
 #include "CBool.h"
-#include <limits.h>
 
 typedef unsigned coq_CNat;
 
