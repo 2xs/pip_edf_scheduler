@@ -2,7 +2,7 @@
 #include "CNat.h"
 #include "mem_repr.h"
 
-internal_t INTERNAL_ARRAY[coq_N] = SCHEDULE_PLAN;
+internal_t INTERNAL_ARRAY[coq_N] = EXAMPLE_JOB_SET;
 coq_CBool  JOB_DONE = false;
 int JOBS_ARRIVING_HEAD_INDEX = -1;
 unsigned int CLOCK = 0;

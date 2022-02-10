@@ -98,6 +98,7 @@ void set_jobs_arriving() {
 
 void timer_handler(void)
 {
+	static unsigned int idle_counter = 10;
 	// set links for jobs arriving at this timestamp
 	set_jobs_arriving();
 
@@ -108,8 +109,15 @@ void timer_handler(void)
 	if (!elected_partition.exists) {
 		printf("No job to schedule, waiting...\n");
 		executing_job_id = -1;
+		idle_counter -= 1;
+		if (idle_counter == 0) {
+			printf("Reached threshold on idle period, shutting down to prevent flooding\n");
+			// Qemu shutdown, does not work on real hardware
+			outw(0x604, 0x2000);
+		}
 		scheduler_wfi();
 	} else {
+		idle_counter = 10;
 		executing_job_id = elected_partition.job_id;
 		yield_to_task(JOB_ID_TO_PART_DESC[elected_partition.job_id]);
 	}

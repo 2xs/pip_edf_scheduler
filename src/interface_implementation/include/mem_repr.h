@@ -36,11 +36,11 @@ extern int ACTIVE_ENTRIES_HEAD_INDEX;
 #define coq_N 5
 
 /* Implementation requirements :
- *     - entry.id and job.job_id should be equal to index in SCHEDULE_PLAN array
+ *     - entry.id and job.job_id should be equal to index in EXAMPLE_JOB_SET array
  *     - job.duration <= job.budget
  *     - job.arrival + job.budget <= job.deadlilne
  */
-#define SCHEDULE_PLAN {                        \
+#define EXAMPLE_JOB_SET {                         \
 	{ {0,  0,  0,  0,  0}, {0, 0 ,0}, -1, -1},\
 	{ {1,  0,  9, 10, 10}, {0, 0 ,0}, -1, -1},\
 	{ {2, 10, 10, 10, 20}, {0, 0 ,0}, -1, -1},\
