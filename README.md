@@ -13,6 +13,9 @@ The easiest way to run the scheduler is to download and run the provided virtual
 
 The virtual machine is also able to compile and run the simulation of our scheduler, if you are more interested in seeing a detailed trace and having insight on how the scheduler works.
 
+You can download the virtual machine image [here](http://pip.univ-lille1.fr/image/vm/pip-edf-scheduler.tar.gz).
+Simply decompress the `tar.gz` archive and run the `ova` file inside it using your favorite virtual machine software (tested on Virtual Box 6.1.32).
+
 If you would rather go through the painful process of setting up the compilation toolchain yourself, please see the environment set up section. Please note that the execution of the kernel along with its scheduler will still happen on a virtual machine, although the compilation process will not.
 
 ### How to run the simulation of the scheduler
@@ -117,8 +120,8 @@ In particular :
 * `JobsAxiom.v` contains the assumptions on Jobs. These must remain true at any time true otherwise the proof does not hold.
 * `Assumptions.v` contains assumptions that hold for the policy. These are transformed into definitions and lemmas once the policy is refined into an algorithm.
 * `EdfPolicy.v` contains proofs related to the EDF scheduling policy. It notably contains the schedulability property, as well as the main scheduling policy property proof outlined in section V-B-1.
-* `FunctionalEdf.v` contains proofs related to the functional election function algorithm. It notably contains the proof that the functional algorithm implements the policy, as well as the correction property proof as outlined in section V-B-2.
-* `MonadicEdf.v` contains proofs related to the monadic election function code that refines the functional algorithm. It notably contains the hoare triple property stating that the output of the monadic code as the same output as the functional algorithm, as well as the correction property proof of the monadic code, as outlined in section V-B-3.
+* `FunctionalEdf.v` contains proofs related to the functional election function algorithm. It notably contains the proof that the functional algorithm implements the policy, as well as the correctness property proof as outlined in section V-B-2.
+* `MonadicEdf.v` contains proofs related to the monadic election function code that refines the functional algorithm. It notably contains the hoare triple property stating that the output of the monadic code as the same output as the functional algorithm, as well as the correctness property proof of the monadic code, as outlined in section V-B-3.
 * `Refinement.v` contains proofs on the refinement of the functional algorithm by the monadic code.
 
 
