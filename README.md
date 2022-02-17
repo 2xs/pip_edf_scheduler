@@ -60,11 +60,13 @@ The first part of the execution is log from the kernel booting and starting the 
 ### Proof verification with Coq
 
 We built our proof using the Coq proof assistant. In order to verify the proofs, you should compile the proof scripts.
-We provide a `make` target that allows you to compile all our scripts, simply run :
+We provide a `make` target that allows you to compile all our scripts. **Inside the scheduler's folder**, simply run :
 
 ```sh
 $ make proofs
 ```
+
+**Important note :** trying to run `make proofs` inside the Pip kernel's folder will verify the proofs brought by the Pip kernel, and will likely exhaust all of your system's remaining memory. Please make sure that you run the command inside the scheduler's folder, and not the kernel's folder.
 
 Simply compiling the proof scripts isn't very informative, we encourage that you read them. We give more detail about what to expect from the proof scripts in the next section.
 
