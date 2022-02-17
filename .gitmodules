@@ -1,9 +1,9 @@
-[submodule "tools/digger"]
+[submodule "digger"]
 	path = tools/digger
 	url = https://github.com/2xs/digger
-	branch = develop
 	ignore = dirty
-[submodule "src/partition/lib/libpip"]
+[submodule "libpip"]
 	path = src/partition/lib/libpip
-	url = https://gitlab.univ-lille.fr/2xs/pip/libpip
+	url = https://github.com/2xs/libpip
+	branch = EDF_scheduler
 	ignore = dirty

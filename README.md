@@ -13,8 +13,8 @@ The easiest way to run the scheduler is to download and run the provided virtual
 
 The virtual machine is also able to compile and run the simulation of our scheduler, if you are more interested in seeing a detailed trace and having insight on how the scheduler works.
 
-You can download the virtual machine image [here](http://pip.univ-lille1.fr/image/vm/pip-edf-scheduler.tar.gz).
-Simply decompress the `tar.gz` archive and run the `ova` file inside it using your favorite virtual machine software (tested on Virtual Box 6.1.32).
+You can download the virtual machine image [here](http://pip.univ-lille1.fr/image/vm/pip-edf-scheduler.zip).
+Simply decompress the `zip` archive and run the `ova` file inside it using your favorite virtual machine software (tested on Virtual Box 6.1.32).
 
 If you would rather go through the painful process of setting up the compilation toolchain yourself, please see the environment set up section. Please note that the execution of the kernel along with its scheduler will still happen on a virtual machine, although the compilation process will not.
 
@@ -131,17 +131,50 @@ It seems that you have chosen the hard path. The process should be somewhere bet
 
 Please note that even though you will compile the binaries on your own system, the Pip kernel will execute on QEMU.
 
-### Pre-required tools
+### Pre-required tools needed to build the simulation
+
+* GNU `make` (at least version 4.3 - tested on version 4.3)
+* `gcc`/`ld` for your own architecture (any reasonably recent version should work - tested on 11.2.0)
+* The Coq Proof Assistant (at least version 8.15 - tested on version 8.15.0)
+* Haskell's `stack` (tested on version 2.7.3)
+
+#### Simulation build environment set up
+
+Begin by cloning the scheduler's repository and `cd` in it:
+```sh
+git clone --depth 1 --branch EDF_scheduler https://github.com/2xs/pip-edf-scheduler
+cd pip-edf-scheduler
+```
+
+Then, retrieve and compile `digger` (we recommend that you go get a coffee):
+```sh
+git submodule init
+git submodule update
+make -C tools/digger/
+```
+
+Finally, build the simulation:
+```sh
+make build/partition_mockup
+```
+
+Congratulations ! You can now run the simulation on your own system with:
+```sh
+build/partition_mockup
+```
+
+### Pre-required tools needed to build and execute the scheduler
 
 Before configuring the environment, you should install the following  :
 * GNU `make` (at least version 4.3 - tested on version 4.3)
+* `gcc`/`ld` for your own architecture (any reasonably recent version should work - tested on 11.2.0)
 * `gcc`/`ld` for 32 bits intel architectures (any reasonably recent version should work - tested on 11.2.0)
 * `nasm` (any reasonably recent version should work - tested on 2.15.05)
 * `QEMU` 32 bits Intel emulator (qemu-system-i386 : recommended version 6.2.0, older version installed through the Debian packet manager is known to cause issues)
 * The Coq Proof Assistant (at least version 8.15 - tested on version 8.15.0)
 * Haskell's `stack` (tested on version 2.7.3)
 
-### Environment set up
+#### Scheduler build/execution environment set up
 
 First, clone and compile the Pip userland library :
 ```sh
