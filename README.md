@@ -1,6 +1,6 @@
 # Formally Verified EDF scheduler
 
-This repository holds the code and proofs of a formally verified, userland, job-based, earliest deadline first scheduler running on top of the Pip kernel.  You can find more about the Pip protokernel at its [website](http://pip.univ-lille1.fr).
+This repository holds the code and proofs of a formally verified, userland, job-based, earliest deadline first scheduler running on top of the Pip kernel.  You can find more about the Pip protokernel at its [website](https://pip.univ-lille.fr).
 This scheduler features a formally proven election function written in Gallina (the specification language of the Coq Proof Assistant).
 
 The repository also hold sources for a program (back-end) that acts as a simulation of the scheduler, that prints relevant information regarding the internal state of the election function.
@@ -13,7 +13,7 @@ The easiest way to run the scheduler is to download and run the provided virtual
 
 The virtual machine is also able to compile and run the simulation of our scheduler, if you are more interested in seeing a detailed trace and having insight on how the scheduler works.
 
-You can download the virtual machine image [here](http://pip.univ-lille1.fr/image/vm/pip-edf-scheduler.zip).
+You can download the virtual machine image [here](https://pip.univ-lille.fr/image/vm/pip-edf-scheduler.zip).
 Simply decompress the `zip` archive and run the `ova` file inside it using your favorite virtual machine software (tested on Virtual Box 6.1.32).
 
 If you would rather go through the painful process of setting up the compilation toolchain yourself, please see the environment set up section. Please note that the execution of the kernel along with its scheduler will still happen on a virtual machine, although the compilation process will not.
