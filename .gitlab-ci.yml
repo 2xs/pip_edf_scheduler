@@ -1,0 +1,102 @@
+image: "coqorg/coq:latest"
+
+variables:
+  CORE_BRANCH: main
+
+build partition:
+  stage: build
+
+  artifacts:
+    paths:
+      - pip-edf-scheduler.bin
+    expire_in: 1 hour
+
+  script:
+    - echo "Will build the EDF scheduler with Core $CORE_BRANCH (dx) and libPip $LIBPIP_BRANCH"
+    - BASEDIR=$PWD
+
+    # Get C and assembly compilers
+    - .ci/apt-get.sh nasm gcc
+
+    # Build the Libpip
+    - git submodule init
+    - git submodule update
+    - make -C src/partition/lib/libpip
+    
+    # get digger from latest CI artifacts
+    - cd tools/digger
+    - curl -L 'https://gitlab.univ-lille.fr/2xs/digger/-/jobs/artifacts/master/download?job=build' -o digger.zip
+    - unzip -o digger.zip
+    - ./digger --version
+    - cd ../..
+
+    - make pip-edf-scheduler.bin
+
+EDF test (pip dx):
+  stage: test
+  needs:
+    - job: build partition
+      artifacts: true
+
+  script:
+    - echo "Will test the EDF scheduler with pipcore (dx) on branch $CORE_BRANCH"
+
+    # select the switch in which dx and its dependencies were compiled
+    - eval $(opam env --switch=4.07.1+flambda --set-switch)
+    - OPAMLIB=$(opam var lib)
+
+    - .ci/apt-get.sh nasm gcc qemu-system-x86
+
+    # get dx from latest CI artifacts
+    - cd .ci
+    - curl -L 'https://gitlab.univ-lille.fr/2xs/dx/-/jobs/artifacts/main/download?job=build%20dx%20and%20deps' -o dx.zip
+    - unzip -o dx.zip
+    - rsync -rpt dx-and-deps/* $OPAMLIB
+    - cd ..
+
+    # get pipcore
+    - git clone --depth=1 -b $CORE_BRANCH https://gitlab.univ-lille.fr/2xs/pip/pipcore.git core
+    - git -C core log -n 1
+
+    # Move build artifact to the location expected by pipcore
+    - mkdir core/src/arch/x86_multiboot/partitions/pip-edf-scheduler
+    - mv pip-edf-scheduler.bin core/src/arch/x86_multiboot/partitions/pip-edf-scheduler
+
+    - cd core
+
+    - ./configure.sh --architecture=x86 --partition-name=pip-edf-scheduler --libpip=/tmp --dx=$OPAMLIB/dx --no-command-check
+    - make qemu-elf
+
+EDF test (pip digger):
+  stage: test
+  needs:
+    - job: build partition
+      artifacts: true
+
+  script:
+    - echo "Will test the EDF scheduler with pipcore (digger) on branch $CORE_BRANCH"
+
+    - BASEDIR=$PWD
+
+    - .ci/apt-get.sh nasm gcc qemu-system-x86
+
+    # get pip core
+    - git clone --depth=1 -b $CORE_BRANCH https://gitlab.univ-lille.fr/2xs/pip/pipcore.git core
+    - git -C core log -n 1
+
+    # Move build artifact to the location expected by pipcore
+    - mkdir core/src/arch/x86_multiboot/partitions/pip-edf-scheduler
+    - mv pip-edf-scheduler.bin core/src/arch/x86_multiboot/partitions/pip-edf-scheduler
+
+    - cd core
+
+    # get digger from latest CI artifacts
+    - cd tools/digger
+    - curl -L 'https://gitlab.univ-lille.fr/2xs/digger/-/jobs/artifacts/master/download?job=build' -o digger.zip
+    - unzip -o digger.zip
+    - ./digger --version
+    - cd ../..
+
+    - ./configure.sh --architecture=x86 --partition-name=pip-edf-scheduler --libpip=/tmp --no-command-check
+    - make qemu-elf
+
