@@ -106,7 +106,7 @@ LIBPIP_COMMON_INC_DIR=$(LIBPIP_DIR)/include
 LIBPIP_ARCH_INC_DIR=$(LIBPIP_DIR)/arch/x86/include
 LIBPIP=$(LIBPIP_DIR)/lib/libpip.a
 
-CFLAGS=-Wall -Wextra
+CFLAGS=-Wall -Wextra -g
 PIP_CFLAGS=-m32 --freestanding -nostdlib -no-pie -fno-pic -fno-stack-protector
 
 PIP_LDFLAGS=-m elf_i386
@@ -179,7 +179,7 @@ $(TASK_BIN): $(C_TASK_DIR)/link.ld $(C_TASK_PIP_OBJ)
 	$(LD) $(LDFLAGS) $(PIP_LDFLAGS) -T $< $(C_TASK_PIP_OBJ) -o $@
 
 pip-edf-scheduler.bin: $(C_PARTITION_DIR)/link.ld $(PIP_OBJ) $(LIBPIP)
-	$(LD) $(LDFLAGS) $(PIP_LDFLAGS) -L $(dir $(LIBPIP)) $(PIP_OBJ) -T $< -o $@ -lpip
+	$(LD) $(LDFLAGS) $(PIP_LDFLAGS) -L $(dir $(LIBPIP)) $(PIP_OBJ) -o $@ -lpip
 
 #####################################################################
 ##                      Proof related targets                      ##

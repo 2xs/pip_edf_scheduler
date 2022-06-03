@@ -16,25 +16,25 @@
  * \brief Start address of the root partition
  * \note This symbol is defined in the link.ld file
  */
-extern void *__startReadOnlyAddress;
+void *__startReadOnlyAddress = (void*)0xAAAAAA01;
 
 /*!
  * \brief End address of the root partition
  * \note This symbol is defined in the link.ld file
  */
-extern void *__endReadOnlyAddress;
+void *__endReadOnlyAddress = (void*)0xAAAAAA02;
 
 /*!
  * \brief Symbol located at the task code's start
  * \note This symbol is defined in the link.ld file
  */
-extern void *__task_code_start;
+void *__task_code_start = (void*)0xAAAAAA03;
 
 /*!
  * \brief Symbol located at the task code's start
  * \note This symbol is defined in the link.ld file
  */
-extern void *__task_code_end;
+void *__task_code_end = (void*)0xAAAAAA04;
 
 /*
  * Arbitrarily chosen address where the available memory of the child will be mapped
