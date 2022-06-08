@@ -33,8 +33,9 @@ static inline void State_remove_first_active_entry() {
 
 
 static inline void State_update_first_active_entry(entry_mod_func_type entry_mod_func){
-	entry_mod_func(&(INTERNAL_ARRAY[ACTIVE_ENTRIES_HEAD_INDEX].entry));
-};
+	if(ACTIVE_ENTRIES_HEAD_INDEX != -1)
+		entry_mod_func(&(INTERNAL_ARRAY[ACTIVE_ENTRIES_HEAD_INDEX].entry));
+}
 
 void State_insert_new_active_entry(coq_Entry entry, entry_cmp_func_type entry_comp_func);
 void State_update_active_entries(entry_mod_func_type entry_mod_func);
