@@ -44,6 +44,7 @@
 
 #include <stdint.h>
 
+#include <pip/calltable.h>
 #include <pip/paging.h>
 #include <pip/stdio.h>
 #include <pip/vidt.h>
