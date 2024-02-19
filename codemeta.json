@@ -1,0 +1,127 @@
+{
+    "@context": [
+        "https:\/\/doi.org\/doi:10.5063\/schema\/codemeta-2.0",
+        "http:\/\/schema.org"
+    ],
+    "@type": "SoftwareSourceCode",
+    "name": "pip\\_edf\\_scheduler",
+    "description": "This repository holds the code and proofs of a formally verified, userland, job-based, earliest deadline first scheduler running on top of the Pip kernel.  You can find more about the Pip protokernel at its website (https:\/\/pip.univ-lille.fr).\r\n\r\nThis scheduler features a formally proven election function written in Gallina (the specification language of the Coq Proof Assistant).\r\n\r\nThe repository also hold sources for a program (back-end) that acts as a simulation of the scheduler, that prints relevant information regarding the internal state of the election function.",
+    "dateCreated": "2020-09-29",
+    "datePublished": "2024-01-31",
+    "license": [
+        "CeCILL Free Software License Agreement v2.1"
+    ],
+    "url": "https:\/\/hal.science\/hal-04429830",
+    "identifier": [
+        {
+            "@type": "swhid",
+            "propertyID": "https:\/\/archive.softwareheritage.org\/swh:1:dir:25301689cda60e938ba55243da1bfe7137563b79;origin=https:\/\/hal.archives-ouvertes.fr\/hal-04429830;visit=swh:1:snp:3736179f223a1f39b86a1d803c559b4f4b76ffd6;anchor=swh:1:rel:759571c7c5be6020911ce733a23ead06b5884787;path=\/",
+            "value": "swh:1:dir:25301689cda60e938ba55243da1bfe7137563b79;origin=https:\/\/hal.archives-ouvertes.fr\/hal-04429830;visit=swh:1:snp:3736179f223a1f39b86a1d803c559b4f4b76ffd6;anchor=swh:1:rel:759571c7c5be6020911ce733a23ead06b5884787;path=\/"
+        }
+    ],
+    "applicationCategory": [
+        "info"
+    ],
+    "keywords": [
+        "Computer Science",
+        "Provable Security",
+        "Security",
+        "Formal Methods",
+        "Operating System",
+        "Scheduler",
+        "Scheduling",
+        "Real time scheduling",
+        "Real time"
+    ],
+    "codeRepository": "https:\/\/github.com\/2xs\/pip_edf_scheduler",
+    "relatedLink": [
+        "https:\/\/pip.univ-lille.fr\/",
+        "https:\/\/github.com\/2xs\/pipcore",
+        "https:\/\/github.com\/2xs\/dx",
+        "https:\/\/github.com\/2xs\/digger"
+    ],
+    "programmingLanguage": [
+        "Coq",
+        "C",
+        "Makefile",
+        "Assembly",
+        "Shell"
+    ],
+    "runtimePlatform": [
+        "CoqIDE",
+        "Coq"
+    ],
+    "version": "1",
+    "softwareVersion": "1.0.0",
+    "dateModified": "2024-02-02",
+    "developmentStatus": "Actif",
+    "referencePublication": {
+        "hal": "hal-03671598"
+    },
+    "author": [
+        {
+            "@type": "Role",
+            "roleName": "aut",
+            "author": {
+                "@type": "Person",
+                "@id": null,
+                "givenName": "Gilles",
+                "familyName": "Grimaud",
+                "affiliation": [
+                    {
+                        "@type": "Organization",
+                        "name": "CRIStAL"
+                    }
+                ]
+            }
+        },
+        {
+            "@type": "Role",
+            "roleName": "aut",
+            "author": {
+                "@type": "Person",
+                "@id": null,
+                "givenName": "David",
+                "familyName": "Nowak",
+                "affiliation": [
+                    {
+                        "@type": "Organization",
+                        "name": "CRIStAL"
+                    }
+                ]
+            }
+        },
+        {
+            "@type": "Role",
+            "roleName": "aut",
+            "author": {
+                "@type": "Person",
+                "@id": null,
+                "givenName": "Vlad",
+                "familyName": "Rusu",
+                "affiliation": [
+                    {
+                        "@type": "Organization",
+                        "name": "SYCOMORES"
+                    }
+                ]
+            }
+        },
+        {
+            "@type": "Role",
+            "roleName": "aut",
+            "author": {
+                "@type": "Person",
+                "@id": null,
+                "givenName": "Florian",
+                "familyName": "Vanhems",
+                "affiliation": [
+                    {
+                        "@type": "Organization",
+                        "name": "CRIStAL"
+                    }
+                ]
+            }
+        }
+    ]
+}
