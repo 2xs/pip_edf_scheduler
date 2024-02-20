@@ -65,7 +65,15 @@
             "affiliation": [
                 {
                     "@type": "Organization",
+                    "name": "Université de Lille"
+                },
+                {
+                    "@type": "Organization",
                     "name": "CRIStAL"
+                },
+                {
+                    "@type": "Organization",
+                    "name": "2XS"
                 }
             ]
         },
@@ -76,7 +84,15 @@
             "affiliation": [
                 {
                     "@type": "Organization",
+                    "name": "CNRS"
+                },
+                {
+                    "@type": "Organization",
                     "name": "CRIStAL"
+                },
+                {
+                    "@type": "Organization",
+                    "name": "2XS"
                 }
             ]
         },
@@ -87,7 +103,15 @@
             "affiliation": [
                 {
                     "@type": "Organization",
-                    "name": "SYCOMORES"
+                    "name": "Inria"
+                },
+                {
+                    "@type": "Organization",
+                    "name": "CRIStAL"
+                },
+                {
+                    "@type": "Organization",
+                    "name": "SyCoMoRES"
                 }
             ]
         },
@@ -98,7 +122,15 @@
             "affiliation": [
                 {
                     "@type": "Organization",
+                    "name": "Université de Lille"
+                },
+                {
+                    "@type": "Organization",
                     "name": "CRIStAL"
+                },
+                {
+                    "@type": "Organization",
+                    "name": "2XS"
                 }
             ]
         }
